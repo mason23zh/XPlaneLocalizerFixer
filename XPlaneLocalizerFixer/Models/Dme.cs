@@ -7,7 +7,7 @@
 /// Model this because the user_nav.data required both glideslope and dme data after only changing the
 /// localizer. 
 /// </remarks>
-public class Dme:NavAid
+public sealed class Dme:NavAid
 {
    /// <summary>
    /// DME bias in nautical miles
