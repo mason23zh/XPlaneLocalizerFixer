@@ -9,12 +9,11 @@ public class Airport
     public required string Identifier { get; init; }
 
     /// <summary>
-    ///     Airport's ICAO code if avaialble.
+    ///     Airport's ICAO code if available.
     /// </summary>
     /// <remarks>
     ///     ICAO code might be missing
     /// </remarks>
-    /// >
     public string? IcaoCode { get; init; }
 
     /// <summary>
