@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
@@ -8,16 +7,21 @@ using XPlaneLocalizerFixer.Test;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+//File access
 builder.Services.AddSingleton<IFileReader, FileReader>();
-builder.Services.AddSingleton<AptDatParser>();
+
+//Parsers
+builder.Services.AddSingleton<IAptDatParser, AptDatParser>();
+
+// Repositories
+builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 
 builder.Services.AddTransient<FileReaderTest>();
 builder.Services.AddTransient<AptDatParserTest>();
-builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 
-using IHost host = builder.Build();
+using var host = builder.Build();
 
-var fileReadTest  = host.Services.GetRequiredService<FileReaderTest>();
+var fileReadTest = host.Services.GetRequiredService<FileReaderTest>();
 
 fileReadTest.Run("earth_nav.dat");
 
