@@ -5,7 +5,7 @@ namespace XPlaneLocalizerFixer.Services;
 public interface ILocalizerRunwayMatcher
 {
     /// <summary>
-    ///     Mtches a localizer ot its corresponding airport runway
+    ///     Match a localizer ot its corresponding airport runway
     /// </summary>
     /// <param name="localizer">The localizer to match</param>
     /// <param name="airports">Airport list loaded from apt.dat</param>
