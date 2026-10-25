@@ -3,7 +3,7 @@
 namespace XPlaneLocalizerFixer.Parsers;
 
 /// <summary>
-///     Deifnes operations for parsing navaid records
+///     Defines operations for parsing navaid records
 ///     from the Xplane earth_nav.dat file
 /// </summary>
 public interface IEarthNavDatParser
@@ -12,10 +12,10 @@ public interface IEarthNavDatParser
     ///     Parse navaid records from text lines.
     /// </summary>
     /// <param name="lines">
-    ///     The soruce line from the earth_nav.dat file.
+    ///     The source line from the earth_nav.dat file.
     /// </param>
     /// <returns>
-    ///     Parsed localzer, glideslope and DME collections
+    ///     Parsed localizer, glideslope and DME collections
     /// </returns>
     NavData Parse(IEnumerable<string> lines);
 }

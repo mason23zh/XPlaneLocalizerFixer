@@ -9,10 +9,10 @@ namespace XPlaneLocalizerFixer.Parsers;
 public interface IAptDatParser
 {
     /// <summary>
-    ///     Parse airport data from dequence of text lines.
+    ///     Parse airport data from sequence of text lines.
     /// </summary>
     /// <param name="lines">
-    ///     The input lines contains Xplnae airport records.
+    ///     The input lines contains Xplane airport records.
     /// </param>
     /// <returns>
     ///     A readonly collection of parsed airports and their runways

@@ -3,7 +3,7 @@
 namespace XPlaneLocalizerFixer.Services;
 
 /// <summary>
-///     Mathces Xplane localizers to runway in the apt.dat
+///     Matches Xplane localizers to runway in the apt.dat
 /// </summary>
 public sealed class LocalizerRunwayMatcher : ILocalizerRunwayMatcher
 {

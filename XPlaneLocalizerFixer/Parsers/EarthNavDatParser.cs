@@ -108,7 +108,7 @@ public sealed class EarthNavDatParser : IEarthNavDatParser
     /// <summary>
     ///     Parse ILS glideslope record.
     /// </summary>
-    /// <param name="fields">The navadi record fields</param>
+    /// <param name="fields">The navaid record fields</param>
     /// <param name="rawLine">The original navaid record</param>
     /// <returns>parsed glideslope</returns>
     public static GlideSlope ParseGlideSlope(

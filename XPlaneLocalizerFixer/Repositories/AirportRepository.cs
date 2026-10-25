@@ -5,10 +5,10 @@ using XPlaneLocalizerFixer.Repositories.IO;
 namespace XPlaneLocalizerFixer.Repositories;
 
 /// <summary>
-///     Retrive airport and runway info from XPlane's apt.dat file
+///     Retrieve airport and runway info from XPlane's apt.dat file
 /// </summary>
 /// <remarks>
-///     Use file reader to stream the soruce file and parser to build airport and runway model
+///     Use file reader to stream the source file and parser to build airport and runway model
 /// </remarks>
 public sealed class AirportRepository : IAirportRepository
 {
