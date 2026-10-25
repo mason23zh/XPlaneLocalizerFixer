@@ -12,12 +12,14 @@ builder.Services.AddSingleton<IFileReader, FileReader>();
 
 //Parsers
 builder.Services.AddSingleton<IAptDatParser, AptDatParser>();
+builder.Services.AddSingleton<IEarthNavDatParser, EarthNavDatParser>();
 
 // Repositories
 builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 
 builder.Services.AddTransient<FileReaderTest>();
 builder.Services.AddTransient<AptDatParserTest>();
+builder.Services.AddTransient<EarthNavDatParserTest>();
 
 using var host = builder.Build();
 
@@ -27,3 +29,6 @@ fileReadTest.Run("earth_nav.dat");
 
 var aptDatParserTest = host.Services.GetRequiredService<AptDatParserTest>();
 aptDatParserTest.Run("VHHH");
+
+var earthNavDatParserTest = host.Services.GetRequiredService<EarthNavDatParserTest>();
+earthNavDatParserTest.Run("VHHH");
