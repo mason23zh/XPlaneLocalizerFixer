@@ -55,13 +55,26 @@ public sealed class LocalizerCorrector : ILocalizerCorrector
             threshold.Latitude,
             threshold.Longitude);
 
-        var runwayEnd = projection.Project(
-            oppositeThreshold.Latitude,
-            oppositeThreshold.Longitude);
+        Vector2D runwayEnd;
+        Vector2D navPosition;
 
-        var navPosition = projection.Project(
-            localizer.Position.Latitude,
-            localizer.Position.Longitude);
+        // Just to be safe here, shouldn't happen.
+        try
+        {
+            runwayEnd = projection.Project(
+                oppositeThreshold.Latitude,
+                oppositeThreshold.Longitude);
+
+            navPosition = projection.Project(
+                localizer.Position.Latitude,
+                localizer.Position.Longitude);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return Skipped(
+                localizer,
+                "Geographic position is outside the valid projection area.");
+        }
 
         // The projection center is the designated runway threshold (0, 0).
         var runwayVector = runwayEnd;
@@ -123,5 +136,13 @@ public sealed class LocalizerCorrector : ILocalizerCorrector
             SkipReason = reason,
             LateralDisplacementMeters = displacement
         };
+    }
+
+    private static bool IsValidCoordinate(GeoCoordinate coordinate)
+    {
+        return double.IsFinite(coordinate.Latitude) &&
+               double.IsFinite(coordinate.Longitude) &&
+               coordinate.Latitude is >= -90 and <= 90 &&
+               coordinate.Longitude is >= -180 and <= 180;
     }
 }
