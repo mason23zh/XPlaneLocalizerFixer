@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XPlaneLocalizerFixer", "XPlaneLocalizerFixer\XPlaneLocalizerFixer.csproj", "{EBB639B2-8C2E-4390-9582-0F4036AD3B0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XPlaneLocalizerFixer.Tests", "XPlaneLocalizerFixer.Tests\XPlaneLocalizerFixer.Tests.csproj", "{AA18040C-084C-4684-9672-536EA6161C95}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{EBB639B2-8C2E-4390-9582-0F4036AD3B0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBB639B2-8C2E-4390-9582-0F4036AD3B0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBB639B2-8C2E-4390-9582-0F4036AD3B0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA18040C-084C-4684-9672-536EA6161C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA18040C-084C-4684-9672-536EA6161C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA18040C-084C-4684-9672-536EA6161C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA18040C-084C-4684-9672-536EA6161C95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
