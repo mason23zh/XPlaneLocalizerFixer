@@ -8,23 +8,20 @@ public sealed class FileReaderTest
 
     public FileReaderTest(IFileReader fileReader)
     {
-       _fileReader = fileReader;     
+        _fileReader = fileReader;
     }
 
     public void Run(string fileName)
     {
-        int lineCount = 0;
+        var lineCount = 0;
 
         foreach (var line in _fileReader.ReadLines(fileName))
         {
             lineCount++;
 
-            if (lineCount <= 5)
-            {
-                Console.WriteLine(line);
-            }
+            if (lineCount <= 5) Console.WriteLine(line);
         }
 
         Console.WriteLine($"Total lines: {lineCount:N0}");
-    } 
+    }
 }

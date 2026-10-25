@@ -4,31 +4,30 @@ using XPlaneLocalizerFixer.Models;
 namespace XPlaneLocalizerFixer.Parsers;
 
 /// <summary>
-/// Parse airport adn runway from X-Plane apt.dat file using APT.DAT 1200 specs.
+///     Parse airport adn runway from X-Plane apt.dat file using APT.DAT 1200 specs.
 /// </summary>
 /// <remarks>
-/// Only parse land airport (row code == 1)
-/// Prase land runways (row code == 100)
-/// Extract airport ICAO metadata (row code == 1302)
-///
-/// Other airport records are ignored.
+///     Only parse land airport (row code == 1)
+///     Prase land runways (row code == 100)
+///     Extract airport ICAO metadata (row code == 1302)
+///     Other airport records are ignored.
 /// </remarks>
 public class AptDatParser
 {
     /// <summary>
-    /// Parses airport records from sequcne of apt.dat lines.
+    ///     Parses airport records from sequcne of apt.dat lines.
     /// </summary>
     /// <param name="lines">
-    /// Source line
+    ///     Source line
     /// </param>
     /// <returns>
-    /// A collection of land airports and thier directional runways.
+    ///     A collection of land airports and thier directional runways.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// Throw when line is null
+    ///     Throw when line is null
     /// </exception>
     /// <exception cref="FormatException">
-    /// Throw when record contains invalid fields
+    ///     Throw when record contains invalid fields
     /// </exception>
     public IReadOnlyList<Airport> Parse(IEnumerable<string> lines)
     {
@@ -41,14 +40,11 @@ public class AptDatParser
         string? currentIcao = null;
 
         var currentRunways = new List<Runway>();
-        int lineNumber = 0;
+        var lineNumber = 0;
 
         void FinishAirport()
         {
-            if (currentIdentifier == null || currentName == null)
-            {
-                return;
-            }
+            if (currentIdentifier == null || currentName == null) return;
 
             var airport = new Airport
             {
@@ -56,7 +52,7 @@ public class AptDatParser
                 Name = currentName,
                 IcaoCode = currentIcao
             };
-            
+
             airport.Runways.AddRange(currentRunways);
             airports.Add(airport);
         }
@@ -70,16 +66,10 @@ public class AptDatParser
                 (char[]?)null,
                 StringSplitOptions.RemoveEmptyEntries);
 
-            if (fields.Length == 0 || fields[0].StartsWith('#'))
-            {
-                continue;
-            }
+            if (fields.Length == 0 || fields[0].StartsWith('#')) continue;
 
             // extract the row code from the first element in the line
-            if (!int.TryParse(fields[0], out var rowCode))
-            {
-                continue;
-            }
+            if (!int.TryParse(fields[0], out var rowCode)) continue;
 
             switch (rowCode)
             {
@@ -90,29 +80,24 @@ public class AptDatParser
                 {
                     // Finish process the previous airport
                     FinishAirport();
-                    
+
                     //reset everything for new airprot
                     currentIdentifier = null;
                     currentName = null;
                     currentIcao = null;
                     currentRunways = [];
-                    
+
                     // only parse land airports, ignore other if rowCode != 1
-                    if (rowCode != 1)
-                    {
-                        break;
-                    }
+                    if (rowCode != 1) break;
 
                     /*
                      * Row codes 1, 16 and 16 share a common format
                      * Row codes 1 will have 6 fields
                      */
                     if (fields.Length < 6)
-                    {
                         throw new FormatException(
                             $"Invalid airprot header at line {lineNumber}");
-                    }
-                    
+
                     // 5th element in the field is airport identifier
                     currentIdentifier = fields[4];
                     // rest is name
@@ -121,27 +106,19 @@ public class AptDatParser
                 }
                 case 100:
                 {
-                    if (currentIcao is null)
-                    {
-                        break;
-                    }
+                    if (currentIcao is null) break;
 
                     ParseRunway(fields, currentRunways, lineNumber);
                     break;
                 }
                 case 1302:
                 {
-                    if (currentIdentifier is null)
-                    {
-                        break;
-                    }
+                    if (currentIdentifier is null) break;
 
                     if (fields.Length >= 3 && fields[1].Equals(
                             "icao_code",
                             StringComparison.OrdinalIgnoreCase))
-                    {
                         currentIcao = fields[2];
-                    }
 
                     break;
                 }
@@ -151,9 +128,8 @@ public class AptDatParser
                     return airports;
                 }
             }
-            
         }
-        
+
         FinishAirport();
         return airports;
     }
@@ -169,26 +145,25 @@ public class AptDatParser
         const int ExpecatedFieldCount = 26;
 
         if (fields.Length < ExpecatedFieldCount)
-        {
             throw new FormatException(
                 $"Invalid runway record at line {lineNumber}." +
                 $"Expeted {ExpecatedFieldCount} fields but found {fields.Length} fields."
             );
-        }
-        
-        string firstIdentifier = fields[8];
-        string secondIdentifier = fields[17];
+
+
+        var firstIdentifier = fields[8];
+        var secondIdentifier = fields[17];
 
         var firstPosition = new GeoCoordinate(
             ParseCoordinate(fields[9]),
             ParseCoordinate(fields[10])
         );
-        
-        var secondPosition= new GeoCoordinate(
+
+        var secondPosition = new GeoCoordinate(
             ParseCoordinate(fields[18]),
             ParseCoordinate(fields[19])
         );
-        
+
         /*
          * Each runway has two directions.
          * Reverse the endpoints for its reciprocal direction
@@ -199,29 +174,29 @@ public class AptDatParser
             StartPosition = firstPosition,
             EndPosition = secondPosition
         });
-        
+
         runways.Add(new Runway
         {
             Identifier = secondIdentifier,
             StartPosition = secondPosition,
-            EndPosition =firstPosition 
+            EndPosition = firstPosition
         });
     }
 
     /// <summary>
-    /// Parse the cooridnate string values in the apt.dat to double 
+    ///     Parse the cooridnate string values in the apt.dat to double
     /// </summary>
     /// <param name="value">The cooridante text</param>
     /// <returns>The coordinate in decimal degrees</returns>
     /// <remarks>
-    /// Assume the coordiantes in apt.dat provided by the XPlane should always be valid.
+    ///     Assume the coordiantes in apt.dat provided by the XPlane should always be valid.
     /// </remarks>
     private static double ParseCoordinate(string value)
     {
         return double.Parse(
-            value, 
+            value,
             NumberStyles.Float,
             CultureInfo.InvariantCulture
-            );
+        );
     }
 }
