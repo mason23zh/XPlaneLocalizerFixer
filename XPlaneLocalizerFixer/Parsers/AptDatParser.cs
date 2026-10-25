@@ -15,13 +15,13 @@ namespace XPlaneLocalizerFixer.Parsers;
 public class AptDatParser : IAptDatParser
 {
     /// <summary>
-    ///     Parses airport records from sequcne of apt.dat lines.
+    ///     Parses airport records from sequence of apt.dat lines.
     /// </summary>
     /// <param name="lines">
     ///     Source line
     /// </param>
     /// <returns>
-    ///     A collection of land airports and thier directional runways.
+    ///     A collection of land airports and their directional runways.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     ///     Throw when line is null
@@ -81,7 +81,7 @@ public class AptDatParser : IAptDatParser
                     // Finish process the previous airport
                     FinishAirport();
 
-                    //reset everything for new airprot
+                    //reset everything for new airport
                     currentIdentifier = null;
                     currentName = null;
                     currentIcao = null;
@@ -138,9 +138,9 @@ public class AptDatParser : IAptDatParser
     {
         /*
          * row 100 runway record contains 8 general fields.
-         * Start from the 9th field it will repetaed for each end of the runway, since the minumal number of runway
+         * Start from the 9th field it will repeated for each end of the runway, since the minimal number of runway
          * is 1, so there will be 2 ends
-         * Hence the minumal fields number would be 9 * 2 + 8 = 26
+         * Hence the minimal fields number would be 9 * 2 + 8 = 26
          */
         const int ExpecatedFieldCount = 26;
 
@@ -184,12 +184,12 @@ public class AptDatParser : IAptDatParser
     }
 
     /// <summary>
-    ///     Parse the cooridnate string values in the apt.dat to double
+    ///     Parse the coordinate string values in the apt.dat to double
     /// </summary>
-    /// <param name="value">The cooridante text</param>
+    /// <param name="value">The coordinate text</param>
     /// <returns>The coordinate in decimal degrees</returns>
     /// <remarks>
-    ///     Assume the coordiantes in apt.dat provided by the XPlane should always be valid.
+    ///     Assume the coordinates in apt.dat provided by the XPlane should always be valid.
     /// </remarks>
     private static double ParseCoordinate(string value)
     {
