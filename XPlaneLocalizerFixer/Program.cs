@@ -16,6 +16,7 @@ builder.Services.AddSingleton<IEarthNavDatParser, EarthNavDatParser>();
 
 // Repositories
 builder.Services.AddTransient<IAirportRepository, AirportRepository>();
+builder.Services.AddTransient<INavDataRepository, NavDataRepository>();
 
 builder.Services.AddTransient<FileReaderTest>();
 builder.Services.AddTransient<AptDatParserTest>();
@@ -31,4 +32,4 @@ var aptDatParserTest = host.Services.GetRequiredService<AptDatParserTest>();
 aptDatParserTest.Run("VHHH");
 
 var earthNavDatParserTest = host.Services.GetRequiredService<EarthNavDatParserTest>();
-earthNavDatParserTest.Run("VHHH");
+earthNavDatParserTest.Run("SBGL");

@@ -1,26 +1,20 @@
-﻿using XPlaneLocalizerFixer.Parsers;
-using XPlaneLocalizerFixer.Repositories.IO;
+﻿using XPlaneLocalizerFixer.Repositories;
 
 namespace XPlaneLocalizerFixer.Test;
 
 public class EarthNavDatParserTest
 {
-    private readonly IFileReader _fileReader;
-    private readonly IEarthNavDatParser _parser;
+    private readonly INavDataRepository _navDataRepository;
 
-    public EarthNavDatParserTest(
-        IFileReader fileReader,
-        IEarthNavDatParser parser)
+    public EarthNavDatParserTest(INavDataRepository navDataRepository)
     {
-        _fileReader = fileReader;
-        _parser = parser;
+        _navDataRepository = navDataRepository;
     }
+
 
     public void Run(string icao)
     {
-        var lines = _fileReader.ReadLines("earth_nav.dat");
-
-        var navData = _parser.Parse(lines);
+        var navData = _navDataRepository.GetNavData();
 
         Console.WriteLine($"Localizers: {navData.Localizers.Count}");
         Console.WriteLine($"Glideslopes: {navData.GlideSlopes.Count}");
