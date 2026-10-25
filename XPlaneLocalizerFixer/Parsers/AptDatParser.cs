@@ -12,7 +12,7 @@ namespace XPlaneLocalizerFixer.Parsers;
 ///     Extract airport ICAO metadata (row code == 1302)
 ///     Other airport records are ignored.
 /// </remarks>
-public class AptDatParser
+public class AptDatParser : IAptDatParser
 {
     /// <summary>
     ///     Parses airport records from sequcne of apt.dat lines.
