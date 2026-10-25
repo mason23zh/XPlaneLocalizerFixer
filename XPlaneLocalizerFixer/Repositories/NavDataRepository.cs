@@ -9,7 +9,7 @@ namespace XPlaneLocalizerFixer.Repositories;
 /// </summary>
 public sealed class NavDataRepository : INavDataRepository
 {
-    private const string FileName = "eartch_nav.dat";
+    private const string FileName = "earth_nav.dat";
 
     private readonly IFileReader _fileReader;
     private readonly IEarthNavDatParser _parser;
