@@ -41,7 +41,7 @@ public class LocalizerRunwayMatcherTests
                 runway
             ],
             Identifier = "VHHH",
-            Name = null
+            Name = "Hong Kong Intl"
         };
 
         var matcher = new LocalizerRunwayMatcher();
@@ -73,7 +73,7 @@ public class LocalizerRunwayMatcherTests
         {
             IcaoCode = "VHHH",
             Identifier = "VHHH",
-            Name = null,
+            Name = "Hong Kong Intl",
             Runways = [runway]
         };
 
@@ -108,7 +108,7 @@ public class LocalizerRunwayMatcherTests
         {
             IcaoCode = airportIcao,
             Identifier = airportIcao,
-            Name = null,
+            Name = "Hong Kong Intl",
             Runways = [runway]
         };
 
@@ -140,7 +140,7 @@ public class LocalizerRunwayMatcherTests
         {
             IcaoCode = null,
             Identifier = "VHHH",
-            Name = null,
+            Name = "Hong Kong Intl",
             Runways = [runway]
         };
 
@@ -155,6 +155,7 @@ public class LocalizerRunwayMatcherTests
         Assert.Same(runway, result.Runway);
     }
 
+    [Theory]
     [InlineData("VHHH", null)]
     [InlineData("VHHH", "")]
     [InlineData("VHHH", "   ")]
@@ -177,23 +178,23 @@ public class LocalizerRunwayMatcherTests
     }
 
     private static Localizer CreateLocalizer(
-        string airportIcao = "VHHH",
-        string runwayIdentifier = "25C")
+        string? airportIcao = "VHHH",
+        string? runwayIdentifier = "25C")
     {
         return new Localizer
         {
             AirportIcao = airportIcao,
-            RunwayIdentifier = runwayIdentifier,
-            Name = null,
+            RunwayIdentifier = runwayIdentifier!,
+            Name = "Hong Kong Intl",
             EncodedCourse = 0,
             RowCode = 4,
             Position = default,
             ElevationFeet = 0,
             Frequency = 0,
             RangeNm = 0,
-            Identifier = null,
-            RegionCode = null,
-            RawLine = null
+            Identifier = "ITFC",
+            RegionCode = "VH",
+            RawLine = "4  22.308577778  113.890702778       21    10930    18  91690.800 ITFC VHHH VH 25C ILS-cat-II"
         };
     }
 }
