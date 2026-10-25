@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using XPlaneLocalizerFixer.Parsers;
+using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.IO;
 using XPlaneLocalizerFixer.Test;
 
@@ -12,6 +13,7 @@ builder.Services.AddSingleton<AptDatParser>();
 
 builder.Services.AddTransient<FileReaderTest>();
 builder.Services.AddTransient<AptDatParserTest>();
+builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 
 using IHost host = builder.Build();
 
