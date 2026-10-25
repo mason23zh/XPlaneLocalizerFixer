@@ -26,6 +26,12 @@ public sealed class LocalizerCorrector : ILocalizerCorrector
         if (threshold == oppositeThreshold)
             return Skipped(localizer, "Runway endpoints are identical.");
 
+        if (!IsValidCoordinate(localizer.Position)) return Skipped(localizer, "Invalid localizer coordinates.");
+
+        if (!IsValidCoordinate(runway.StartPosition) ||
+            !IsValidCoordinate(runway.EndPosition))
+            return Skipped(localizer, "Invalid runway coordinates.");
+
         var runwayHeading = GeoMath.CalculateBearing(
             threshold.Latitude,
             threshold.Longitude,
