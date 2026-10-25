@@ -22,6 +22,10 @@ public sealed class LocalizerCorrector : ILocalizerCorrector
         var threshold = runway.StartPosition;
         var oppositeThreshold = runway.EndPosition;
 
+        // A runway must have two distinct endpoints to define a centerline.
+        if (threshold == oppositeThreshold)
+            return Skipped(localizer, "Runway endpoints are identical.");
+
         var runwayHeading = GeoMath.CalculateBearing(
             threshold.Latitude,
             threshold.Longitude,
