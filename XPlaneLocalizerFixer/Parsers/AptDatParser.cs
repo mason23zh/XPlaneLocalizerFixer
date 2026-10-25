@@ -106,7 +106,7 @@ public class AptDatParser : IAptDatParser
                 }
                 case 100:
                 {
-                    if (currentIcao is null) break;
+                    if (currentIdentifier is null) break;
 
                     ParseRunway(fields, currentRunways, lineNumber);
                     break;
