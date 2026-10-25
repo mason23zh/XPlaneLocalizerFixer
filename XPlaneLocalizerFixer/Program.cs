@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.IO;
+using XPlaneLocalizerFixer.Services;
 using XPlaneLocalizerFixer.Test;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -18,9 +19,13 @@ builder.Services.AddSingleton<IEarthNavDatParser, EarthNavDatParser>();
 builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 builder.Services.AddTransient<INavDataRepository, NavDataRepository>();
 
+//services
+builder.Services.AddSingleton<ILocalizerRunwayMatcher, LocalizerRunwayMatcher>();
+
 builder.Services.AddTransient<FileReaderTest>();
 builder.Services.AddTransient<AptDatParserTest>();
 builder.Services.AddTransient<EarthNavDatParserTest>();
+builder.Services.AddTransient<LocalizerRunwayMatcherTest>();
 
 using var host = builder.Build();
 
@@ -33,3 +38,6 @@ aptDatParserTest.Run("VHHH");
 
 var earthNavDatParserTest = host.Services.GetRequiredService<EarthNavDatParserTest>();
 earthNavDatParserTest.Run("SBGL");
+
+var matcher = host.Services.GetRequiredService<LocalizerRunwayMatcherTest>();
+matcher.Run("CYWG", "31");
