@@ -16,7 +16,7 @@ public class CorrectedNavDatWriter : ICorrectedNavDatWriter
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         ArgumentNullException.ThrowIfNull(corrections);
 
-        // validate the entire colleciton before creating the output file
+        // validate the entire collection before creating the output file
         foreach (var (correction, navAids) in corrections)
             if (!correction.IsCorrected ||
                 correction.CorrectedLatitude is null ||
