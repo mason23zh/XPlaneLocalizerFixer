@@ -46,6 +46,7 @@ public sealed class EarthNavDatParser : IEarthNavDatParser
             switch (rowCode)
             {
                 // both row 4 and 5 are for localizers
+                // we keep both, and we will filter out stand-alone localizer 
                 case 4:
                 case 5:
                 {
