@@ -26,6 +26,13 @@ builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
 builder.Services.AddSingleton<ILocalizerCorrectionProcessor, LocalizerCorrectionProcessor>();
 builder.Services.AddSingleton<ICorrectedNavDatWriter, CorrectedNavDatWriter>();
 
+// Configuration
+builder.Services.Configure<FilePathOptions>(
+    builder.Configuration.GetSection(FilePathOptions.SectionName));
+builder.Services.Configure<LocalizerCorrectionOptions>(
+    builder.Configuration.GetSection(LocalizerCorrectionOptions.SectionName));)
+
+
 using var host = builder.Build();
 
 // simple workflow test
