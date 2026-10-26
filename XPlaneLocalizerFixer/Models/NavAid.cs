@@ -34,7 +34,7 @@ public class NavAid
     ///     Navaid frequency multiplied by 100
     /// </summary>
     /// <remarks>
-    ///     For example, a frequency of 110.90 mhz is stored as 110900
+    ///     For example, a frequency of 110.90 mhz is stored as 11090
     /// </remarks>
     public required int Frequency { get; init; }
 
