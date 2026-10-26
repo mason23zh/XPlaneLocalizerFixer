@@ -9,6 +9,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 //File access
 builder.Services.AddSingleton<IFileReader, FileReader>();
+builder.Services.AddSingleton<IFileWriter, FileWriter>();
 
 //Parsers
 builder.Services.AddSingleton<IAptDatParser, AptDatParser>();
