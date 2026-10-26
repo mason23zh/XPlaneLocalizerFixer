@@ -1,4 +1,6 @@
-﻿using XPlaneLocalizerFixer.Models;
+﻿using Microsoft.Extensions.Options;
+using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories.IO;
 
@@ -9,22 +11,24 @@ namespace XPlaneLocalizerFixer.Repositories;
 /// </summary>
 public sealed class NavDataRepository : INavDataRepository
 {
-    private const string FileName = "earth_nav.dat";
-
     private readonly IFileReader _fileReader;
+    private readonly FilePathOptions _options;
     private readonly IEarthNavDatParser _parser;
 
     public NavDataRepository(
         IFileReader fileReader,
-        IEarthNavDatParser parser)
+        IEarthNavDatParser parser,
+        IOptions<FilePathOptions> options
+    )
     {
         _fileReader = fileReader;
         _parser = parser;
+        _options = options.Value;
     }
 
     public NavData GetNavData()
     {
-        var liens = _fileReader.ReadLines(FileName);
+        var liens = _fileReader.ReadLines(_options.EarthNavDatFileName);
 
         return _parser.Parse(liens);
     }
