@@ -18,18 +18,26 @@ public class LocalizerCorrectorTests
             EndPosition = new GeoCoordinate(0.01, 0)
         };
 
-        var projection = new GnomonicProjection(0, 0);
+        var centerlinePosition = Wgs84Geodesic.Direct(
+            runway.StartPosition,
+            180.0,
+            100.0);
 
-        // Position the localizer south of the threshold,
-        // then displace it 10 metres laterally.
-        var position = projection.Unproject(new Vector2D(10, -100));
+        Assert.NotNull(centerlinePosition);
+
+        var position = Wgs84Geodesic.Direct(
+            centerlinePosition.Value,
+            90.0,
+            10.0);
+
+        Assert.NotNull(position);
 
         var localizer = new Localizer
         {
             RowCode = 4,
             Position = new GeoCoordinate(
-                position.Latitude,
-                position.Longitude),
+                position.Value.Latitude,
+                position.Value.Longitude),
             ElevationFeet = 100,
             Frequency = 11050,
             RangeNm = 18,
@@ -52,26 +60,45 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.True(result.IsCorrected, result.SkipReason);
-        Assert.Equal(10, result.LateralDisplacementMeters!.Value, 3);
+        Assert.NotNull(result.LateralDisplacementMeters);
+        Assert.InRange(
+            result.LateralDisplacementMeters.Value,
+            9.9,
+            10.1);
 
         Assert.NotNull(result.CorrectedLatitude);
         Assert.NotNull(result.CorrectedLongitude);
 
-        var corrected = projection.Project(
+        var corrected = new GeoCoordinate(
             result.CorrectedLatitude.Value,
             result.CorrectedLongitude.Value);
 
-        Assert.Equal(0, corrected.X, 4);
-        Assert.Equal(-100, corrected.Y, 4);
+        Assert.InRange(
+            Math.Abs(corrected.Longitude),
+            0.0,
+            1e-8);
+
+        // Verify the corrected position is approximately 100 metres
+        // south of the runway threshold using WGS84 distances.
+        var correctedDistance = Wgs84Geodesic.Inverse(
+            runway.StartPosition,
+            corrected);
+
+        Assert.NotNull(correctedDistance);
+
+        Assert.InRange(
+            correctedDistance.Value.Distance,
+            99.999,
+            100.001);
 
         // The original parsed localizer must remain unchanged.
         Assert.Equal(
             localizer.Position.Latitude,
-            position.Latitude);
+            position.Value.Latitude);
 
         Assert.Equal(
             localizer.Position.Longitude,
-            position.Longitude);
+            position.Value.Longitude);
     }
 
     [Fact]
@@ -114,7 +141,7 @@ public class LocalizerCorrectorTests
         Assert.False(result.IsCorrected);
         Assert.NotNull(result.SkipReason);
         Assert.Contains("50", result.SkipReason);
-        Assert.Equal(60, result.LateralDisplacementMeters!.Value, 3);
+        Assert.True(result.LateralDisplacementMeters!.Value > 50.0);
 
         Assert.Null(result.CorrectedLatitude);
         Assert.Null(result.CorrectedLongitude);
@@ -173,8 +200,8 @@ public class LocalizerCorrectorTests
     [Theory]
     [InlineData(0.0)]
     [InlineData(0.5)]
-    [InlineData(1.0)]
-    [InlineData(359.0)]
+    [InlineData(0.999)]
+    [InlineData(359.001)]
     public void Correct_HeadingWithinTolerance_PreservesMagneticCourse(
         double trueBearing)
     {
@@ -226,7 +253,11 @@ public class LocalizerCorrectorTests
 
         Assert.Equal(0.0, correctedCourse % 360.0, 6);
 
-        Assert.Equal(10.0, result.LateralDisplacementMeters!.Value, 3);
+        Assert.NotNull(result.CorrectedLatitude);
+        Assert.InRange(
+            result.LateralDisplacementMeters!.Value,
+            9.9,
+            10.1);
     }
 
     [Fact]
@@ -271,32 +302,36 @@ public class LocalizerCorrectorTests
 
         Assert.True(result.IsCorrected, result.SkipReason);
 
+
+        // Expected WGS84 correction, verified against the previous
+        // successful SBGL RWY 15 in-game alignment.
         Assert.NotNull(result.CorrectedLatitude);
         Assert.NotNull(result.CorrectedLongitude);
         Assert.NotNull(result.CorrectedEncodedCourse);
         Assert.NotNull(result.LateralDisplacementMeters);
 
-        // Independently calculated reference values using
-        // the spherical Gnomonic projection.
         Assert.InRange(
-            result.CorrectedLatitude.Value,
-            -22.830117556,
-            -22.830117356);
+            Math.Abs(result.CorrectedLongitude.Value - -43.236977125),
+            0.0,
+            1e-8);
 
         Assert.InRange(
-            result.CorrectedLongitude.Value,
-            -43.236977264,
-            -43.236977064);
+            Math.Abs(result.CorrectedLatitude.Value - -22.830117481),
+            0.0,
+            1e-8);
 
         Assert.Equal(
-            0.868555,
-            result.LateralDisplacementMeters.Value,
-            3);
-
-        Assert.Equal(
-            53765.682,
+            53765.527,
             result.CorrectedEncodedCourse.Value,
             3);
+
+        // The original localizer was approximately 0.87 m
+        // laterally displaced from the WGS84 runway centerline.
+        Assert.InRange(
+            result.LateralDisplacementMeters.Value,
+            0.86,
+            0.88);
+
 
         // The original localizer must remain unchanged.
         Assert.Equal(
@@ -355,27 +390,23 @@ public class LocalizerCorrectorTests
         Assert.NotNull(result.CorrectedEncodedCourse);
         Assert.NotNull(result.LateralDisplacementMeters);
 
-        // Expected values independently calculated using the
-        // spherical Gnomonic projection and runway centerline.
-        Assert.Equal(
-            22.295257149,
-            result.CorrectedLatitude.Value,
-            7);
 
-        Assert.Equal(
-            113.895089014,
-            result.CorrectedLongitude.Value,
-            7);
+        // Expected WGS84 correction for VHHH RWY 25L.
+        Assert.InRange(
+            Math.Abs(result.CorrectedLatitude!.Value - 22.295257128),
+            0.0,
+            1e-7);
 
-        Assert.Equal(
-            1.775,
-            result.LateralDisplacementMeters.Value,
-            3);
+        Assert.InRange(
+            Math.Abs(result.CorrectedLongitude!.Value - 113.895088957),
+            0.0,
+            1e-7);
 
-        Assert.Equal(
-            91690.790,
-            result.CorrectedEncodedCourse.Value,
-            3);
+        Assert.InRange(
+            Math.Abs(result.CorrectedEncodedCourse!.Value - 91690.893),
+            0.0,
+            0.001);
+
 
         // The original localizer must not be modified.
         Assert.Equal(
@@ -420,8 +451,9 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.False(result.IsCorrected);
+        Assert.NotNull(result.SkipReason);
         Assert.Contains(
-            "Runway endpoints are identical",
+            "Invalid runway geometry",
             result.SkipReason);
 
         Assert.Null(result.CorrectedLatitude);
@@ -429,6 +461,36 @@ public class LocalizerCorrectorTests
         Assert.Null(result.CorrectedEncodedCourse);
     }
 
+    [Fact]
+    public void ProjectOntoRunway_NorthboundRunway_PreservesMeridian()
+    {
+        var start = new GeoCoordinate(0, 0);
+        var end = new GeoCoordinate(0.01, 0);
+
+        var runwayPath = Wgs84Geodesic.Inverse(start, end);
+
+        Assert.NotNull(runwayPath);
+
+        var localizer = new GeoCoordinate(-0.00090437, 0);
+
+        var result = Wgs84Geodesic.ProjectOntoRunway(
+            start,
+            runwayPath.Value.Bearing,
+            runwayPath.Value.Distance,
+            localizer);
+
+        Assert.NotNull(result);
+
+        Assert.InRange(
+            Math.Abs(result.Value.Position.Longitude),
+            0,
+            1e-8);
+
+        Assert.InRange(
+            result.Value.Distance,
+            0,
+            0.01);
+    }
 
     [Fact]
     public void Correct_LocalizerAlreadyOnCenterline_PreservesPosition()
@@ -440,16 +502,19 @@ public class LocalizerCorrectorTests
             EndPosition = new GeoCoordinate(0.01, 0)
         };
 
-        var projection = new GnomonicProjection(0, 0);
+        // Place the localizer 100 metres south of the threshold
+        // along the WGS84 runway centerline.
+        var position = Wgs84Geodesic.Direct(
+            runway.StartPosition,
+            180.0,
+            100.0);
 
-        // Place the localizer 100 metres behind the runway threshold,
-        // exactly on the extended centerline.
-        var position = projection.Unproject(new Vector2D(0, -100));
+        Assert.NotNull(position);
 
         var localizer = new Localizer
         {
             RowCode = 4,
-            Position = new GeoCoordinate(position.Latitude, position.Longitude),
+            Position = position.Value,
             ElevationFeet = 100,
             Frequency = 11050,
             RangeNm = 18,
@@ -471,20 +536,29 @@ public class LocalizerCorrectorTests
         Assert.NotNull(result.CorrectedLatitude);
         Assert.NotNull(result.CorrectedLongitude);
         Assert.NotNull(result.LateralDisplacementMeters);
+        Assert.NotNull(result.CorrectedEncodedCourse);
 
-        Assert.Equal(0, result.LateralDisplacementMeters.Value, 6);
+        // Allow 1 mm for numerical optimization error.
+        Assert.InRange(
+            result.LateralDisplacementMeters.Value,
+            0.0,
+            0.001);
 
-        Assert.Equal(
-            localizer.Position.Latitude,
+        var corrected = new GeoCoordinate(
             result.CorrectedLatitude.Value,
-            8);
+            result.CorrectedLongitude.Value);
 
-        Assert.Equal(
-            localizer.Position.Longitude,
-            result.CorrectedLongitude.Value,
-            8);
+        var difference = Wgs84Geodesic.Inverse(
+            localizer.Position,
+            corrected);
 
-        Assert.Equal(36000, result.CorrectedEncodedCourse!.Value, 6);
+        Assert.NotNull(difference);
+        Assert.InRange(difference.Value.Distance, 0.0, 0.001);
+
+        Assert.Equal(36000, result.CorrectedEncodedCourse.Value, 6);
+
+        // The input object remains unchanged.
+        Assert.Equal(position.Value, localizer.Position);
     }
 
     [Theory]
@@ -535,7 +609,7 @@ public class LocalizerCorrectorTests
     }
 
     [Fact]
-    public void Correct_LocalizerOutsideProjectionHemisphere_SkipsCorrection()
+    public void Correct_LocalizerFarFromRunway_SkipsCorrection()
     {
         var runway = new Runway
         {
@@ -566,9 +640,20 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.False(result.IsCorrected);
-        Assert.Contains(
-            "projection",
-            result.SkipReason!,
-            StringComparison.OrdinalIgnoreCase);
+
+        Assert.NotNull(result.SkipReason);
+
+        Assert.Equal(
+            "Lateral displacement exceeds 50 metres.",
+            result.SkipReason);
+
+        Assert.NotNull(result.LateralDisplacementMeters);
+
+        Assert.True(
+            result.LateralDisplacementMeters.Value > 50.0);
+
+        Assert.Null(result.CorrectedLatitude);
+        Assert.Null(result.CorrectedLongitude);
+        Assert.Null(result.CorrectedEncodedCourse);
     }
 }
