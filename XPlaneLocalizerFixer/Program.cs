@@ -22,5 +22,6 @@ builder.Services.AddTransient<INavDataRepository, NavDataRepository>();
 builder.Services.AddSingleton<ILocalizerRunwayMatcher, LocalizerRunwayMatcher>();
 builder.Services.AddSingleton<ILocalizerNavAidMatcher, LocalizerNavAidMatcher>();
 builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
+builder.Services.AddSingleton<ILocalizerCorrectionProcessor, LocalizerCorrectionProcessor>();
 
 using var host = builder.Build();
