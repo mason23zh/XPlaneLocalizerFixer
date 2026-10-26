@@ -11,7 +11,7 @@ public class FileWriter : IFileWriter
 
         using var stream = new FileStream(
             outputPath,
-            FileMode.CreateNew,
+            FileMode.Create,
             FileAccess.Write,
             FileShare.None);
 
