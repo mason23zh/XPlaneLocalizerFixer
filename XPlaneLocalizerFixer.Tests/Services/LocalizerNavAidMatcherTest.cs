@@ -4,7 +4,7 @@ using XPlaneLocalizerFixer.Services;
 
 namespace XPlaneLocalizerFixer.Tests.Services;
 
-public class LocalizerNavAdMatcherTest
+public class LocalizerNavAidMatcherTest
 {
     [Fact]
     public void Match_WhenLocalizerHasGlideSlopeAndDme_ReturnsBoth()
@@ -45,8 +45,8 @@ public class LocalizerNavAdMatcherTest
         Assert.True(result.IsEligibleForCorrection);
 
         // Matching must preserve the original navigation records.
-        Assert.Equal(gsLine, result.GlideSlope.RawLine);
-        Assert.Equal(dmeLine, result.Dme.RawLine);
+        Assert.Equal(gsLine, result.GlideSlope!.RawLine);
+        Assert.Equal(dmeLine, result.Dme!.RawLine);
     }
 
     [Fact]
