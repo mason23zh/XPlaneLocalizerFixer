@@ -3,11 +3,7 @@ using XPlaneLocalizerFixer.Models;
 
 namespace XPlaneLocalizerFixer.Services;
 
-/// <summary>
-///     Calculates localizer position and course corrections using the
-///     centerline of the associated runway.
-/// </summary>
-public sealed class LocalizerCorrector : ILocalizerCorrector
+public class LocalizerCorrector : ILocalizerCorrector
 {
     private const double MaxHeadingDifferenceDegrees = 1.0;
     private const double MaxLateralDisplacementMeters = 50.0;
@@ -19,83 +15,59 @@ public sealed class LocalizerCorrector : ILocalizerCorrector
         var localizer = match.Localizer;
         var runway = match.Runway;
 
-        var threshold = runway.StartPosition;
-        var oppositeThreshold = runway.EndPosition;
+        var start = runway.StartPosition;
+        var end = runway.EndPosition;
+        var nav = localizer.Position;
 
-        // A runway must have two distinct endpoints to define a centerline.
-        if (threshold == oppositeThreshold)
-            return Skipped(localizer, "Runway endpoints are identical.");
-
-        if (!IsValidCoordinate(localizer.Position)) return Skipped(localizer, "Invalid localizer coordinates.");
-
-        if (!IsValidCoordinate(runway.StartPosition) ||
-            !IsValidCoordinate(runway.EndPosition))
+        if (!IsValidCoordinate(start) || !IsValidCoordinate(end))
             return Skipped(localizer, "Invalid runway coordinates.");
 
-        var runwayHeading = GeoMath.CalculateBearing(
-            threshold.Latitude,
-            threshold.Longitude,
-            oppositeThreshold.Latitude,
-            oppositeThreshold.Longitude);
+        if (!IsValidCoordinate(nav))
+            return Skipped(localizer, "Invalid localizer coordinates.");
 
-        // The true bearing is the remainder of the encoded course.
-        var localizerHeading =
-            GeoMath.NormalizeHeading(localizer.EncodedCourse);
+        if (!double.IsFinite(localizer.EncodedCourse) ||
+            localizer.EncodedCourse < 0)
+            return Skipped(localizer, "Invalid localizer course.");
+
+        // Determine the runway's initial true bearing on the WGS84 ellipsoid.
+        var runwayPath = Wgs84Geodesic.Inverse(start, end);
+
+        if (runwayPath is null || runwayPath.Value.Distance < 1.0)
+            return Skipped(localizer, "Invalid runway geometry.");
+
+        var runwayHeading = runwayPath.Value.Bearing;
+
+        // Xplane combines magnetic front course and true bearing.
+        var localizerHeading = GeoMath.NormalizeHeading(localizer.EncodedCourse);
 
         var headingDifference = GeoMath.AngularDifference(
             localizerHeading,
             runwayHeading);
 
-        if (headingDifference > MaxHeadingDifferenceDegrees)
+        // Protect intentionally offset localizer approaches.
+        if (headingDifference >= MaxHeadingDifferenceDegrees)
             return Skipped(
                 localizer,
-                "Localizer heading differs from runway heading by more than 1 degree.");
+                "Localizer heading differs from runway heading by at least 1 degree.");
 
-        var projection = new GnomonicProjection(
-            threshold.Latitude,
-            threshold.Longitude);
+        // Find the closest position on the extended runway centerline.
+        var projection = Wgs84Geodesic.ProjectOntoRunway(
+            start,
+            runwayHeading,
+            runwayPath.Value.Distance,
+            nav);
 
-        Vector2D runwayEnd;
-        Vector2D navPosition;
+        if (projection is null)
+            return Skipped(localizer, "Unable to project localizer.");
 
-        // Just to be safe here, shouldn't happen.
-        try
-        {
-            runwayEnd = projection.Project(
-                oppositeThreshold.Latitude,
-                oppositeThreshold.Longitude);
+        var (correctedPosition, lateralDisplacement) = projection.Value;
 
-            navPosition = projection.Project(
-                localizer.Position.Latitude,
-                localizer.Position.Longitude);
-        }
-        catch (ArgumentOutOfRangeException)
-        {
+        if (!IsValidCoordinate(correctedPosition) ||
+            !double.IsFinite(lateralDisplacement) ||
+            lateralDisplacement < 0)
             return Skipped(
                 localizer,
-                "Geographic position is outside the valid projection area.");
-        }
-
-        // The projection center is the designated runway threshold (0, 0).
-        var runwayVector = runwayEnd;
-
-        var runwayLengthSquared = runwayVector.Dot(runwayVector);
-
-        if (!double.IsFinite(runwayLengthSquared) ||
-            runwayLengthSquared <= 0)
-            return Skipped(localizer, "Invalid runway geometry.");
-
-        // Project the localizer perpendicularly onto the infinite
-        // runway centerline, preserving its longitudinal position.
-        var factor =
-            navPosition.Dot(runwayVector) / runwayLengthSquared;
-
-        var correctedPosition = runwayVector * factor;
-
-        var lateralDisplacement =
-            navPosition.DistanceTo(correctedPosition);
-
-        if (!double.IsFinite(lateralDisplacement)) return Skipped(localizer, "Invalid lateral displacement.");
+                "Invalid geodesic projection result.");
 
         if (lateralDisplacement > MaxLateralDisplacementMeters)
             return Skipped(
@@ -103,22 +75,19 @@ public sealed class LocalizerCorrector : ILocalizerCorrector
                 $"Lateral displacement exceeds {MaxLateralDisplacementMeters} metres.",
                 lateralDisplacement);
 
-        var correctedCoordinates =
-            projection.Unproject(correctedPosition);
-
-        // Preserve the encoded integer magnetic front-course component.
-        var magneticCoursePrefix =
+        // Preserve the integer magnetic-course portion of X-Plane's encoding.
+        var magneticPrefix =
             Math.Floor(localizer.EncodedCourse / 360.0) * 360.0;
 
         var correctedEncodedCourse =
-            magneticCoursePrefix + runwayHeading;
+            magneticPrefix + runwayHeading;
 
         return new LocalizerCorrectionResult
         {
             Localizer = localizer,
             IsCorrected = true,
-            CorrectedLatitude = correctedCoordinates.Latitude,
-            CorrectedLongitude = correctedCoordinates.Longitude,
+            CorrectedLatitude = correctedPosition.Latitude,
+            CorrectedLongitude = correctedPosition.Longitude,
             CorrectedEncodedCourse = correctedEncodedCourse,
             LateralDisplacementMeters = lateralDisplacement
         };
