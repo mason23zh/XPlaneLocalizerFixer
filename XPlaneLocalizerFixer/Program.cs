@@ -21,6 +21,8 @@ builder.Services.AddTransient<INavDataRepository, NavDataRepository>();
 
 //services
 builder.Services.AddSingleton<ILocalizerRunwayMatcher, LocalizerRunwayMatcher>();
+builder.Services.AddSingleton<ILocalizerNavAidMatcher, LocalizerNavAidMatcher>();
+builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
 
 builder.Services.AddTransient<FileReaderTest>();
 builder.Services.AddTransient<AptDatParserTest>();
