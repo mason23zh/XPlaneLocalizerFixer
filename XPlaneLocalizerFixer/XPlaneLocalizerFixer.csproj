@@ -16,4 +16,8 @@
         <Folder Include="Archive\"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
 </Project>
