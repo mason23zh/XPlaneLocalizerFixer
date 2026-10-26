@@ -28,7 +28,12 @@ public sealed class NavDataRepository : INavDataRepository
 
     public NavData GetNavData()
     {
-        var liens = _fileReader.ReadLines(_options.EarthNavDatFileName);
+        var filePath = Path.Combine(
+            AppContext.BaseDirectory,
+            _options.InputDirectory,
+            _options.EarthNavDatFileName);
+
+        var liens = _fileReader.ReadLines(filePath);
 
         return _parser.Parse(liens);
     }
