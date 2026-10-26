@@ -30,8 +30,7 @@ builder.Services.AddSingleton<ICorrectedNavDatWriter, CorrectedNavDatWriter>();
 builder.Services.Configure<FilePathOptions>(
     builder.Configuration.GetSection(FilePathOptions.SectionName));
 builder.Services.Configure<LocalizerCorrectionOptions>(
-    builder.Configuration.GetSection(LocalizerCorrectionOptions.SectionName));)
-
+    builder.Configuration.GetSection(LocalizerCorrectionOptions.SectionName));
 
 using var host = builder.Build();
 
