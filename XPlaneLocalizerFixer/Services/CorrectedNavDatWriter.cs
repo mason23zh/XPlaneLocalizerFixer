@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
-using System.Text;
 using XPlaneLocalizerFixer.Models;
+using XPlaneLocalizerFixer.Repositories.IO;
 
 namespace XPlaneLocalizerFixer.Services;
 
@@ -9,6 +9,13 @@ public class CorrectedNavDatWriter : ICorrectedNavDatWriter
     private const string Header =
         "I\n" +
         "1200 Version - data cycle 2407, build 20240630, metadata NavXP1200.";
+
+    private readonly IFileWriter _fileWriter;
+
+    public CorrectedNavDatWriter(IFileWriter fileWriter)
+    {
+        _fileWriter = fileWriter;
+    }
 
     public void Write(string outputPath,
         IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> corrections)
@@ -27,32 +34,26 @@ public class CorrectedNavDatWriter : ICorrectedNavDatWriter
                 throw new InvalidOperationException(
                     "The correction collection contains an invalid ILS correction.");
 
-        using var stream = new FileStream(
-            outputPath,
-            FileMode.CreateNew,
-            FileAccess.Write,
-            FileShare.None);
+        _fileWriter.WriteLines(outputPath, GenerateLines(corrections));
+    }
 
-        using var writer = new StreamWriter(
-            stream,
-            new UTF8Encoding(false));
+    private static IEnumerable<string> GenerateLines(
+        IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> corrections)
+    {
+        yield return Header;
+        yield return string.Empty;
 
-        writer.NewLine = "\n";
-
-        writer.WriteLine(Header);
-        writer.WriteLine();
-
-        foreach (var (correction, navAdis) in corrections)
+        foreach (var (correction, navAids) in corrections)
         {
-            writer.WriteLine(FormatLocalizer(correction));
-            writer.WriteLine(navAdis.GlideSlope!.RawLine);
+            yield return FormatLocalizer(correction);
+            yield return navAids.GlideSlope!.RawLine;
 
-            if (navAdis.Dme is not null)
-                writer.WriteLine(navAdis.Dme.RawLine);
+            if (navAids.Dme is not null)
+                yield return navAids.Dme.RawLine;
         }
 
-        writer.WriteLine();
-        writer.WriteLine("99");
+        yield return string.Empty;
+        yield return "99";
     }
 
     private static string FormatLocalizer(LocalizerCorrectionResult correction)
