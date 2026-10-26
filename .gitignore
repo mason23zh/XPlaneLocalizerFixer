@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Ingore Archive folder in the XPlaneLocalizerFixer project
+/XPlaneLocalizerFixer/Archive/
