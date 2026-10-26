@@ -3,7 +3,7 @@
 /// <summary>
 ///     Stream access to text files that located in the application's directory
 /// </summary>
-public class FileReader : IFileReader
+public sealed class FileReader : IFileReader
 {
     public IEnumerable<string> ReadLines(string fileName)
     {
