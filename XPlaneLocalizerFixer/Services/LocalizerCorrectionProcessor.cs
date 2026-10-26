@@ -3,7 +3,7 @@ using XPlaneLocalizerFixer.Repositories;
 
 namespace XPlaneLocalizerFixer.Services;
 
-public sealed class LocalizerCorrectionProcessor
+public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
 {
     private readonly IAirportRepository _airportRepository;
     private readonly ILocalizerCorrector _corrector;
