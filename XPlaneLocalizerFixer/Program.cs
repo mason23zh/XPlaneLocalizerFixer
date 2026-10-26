@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
@@ -53,8 +54,18 @@ if (corrections.Count == 0)
     return;
 }
 
-// generate a new file
-var outputPath = Path.Combine(AppContext.BaseDirectory, "user_nav_generated.dat");
+// get the configured file paths.
+var fileOptions = host.Services
+    .GetRequiredService<IOptions<FilePathOptions>>()
+    .Value;
+
+var outputDirectory = Path.GetFullPath(
+    fileOptions.OutputDirectory,
+    AppContext.BaseDirectory);
+
+Directory.CreateDirectory(outputDirectory);
+
+var outputPath = Path.Combine(outputDirectory, fileOptions.OutputFileName);
 
 writer.Write(outputPath, corrections);
 
