@@ -56,18 +56,23 @@ public class CorrectedNavDatWriter : ICorrectedNavDatWriter
     {
         var localizer = correction.Localizer;
 
-        return string.Join(" ",
-            localizer.RowCode.ToString(CultureInfo.InvariantCulture),
-            correction.CorrectedLatitude!.Value.ToString("F9", CultureInfo.InvariantCulture),
-            correction.CorrectedLongitude!.Value.ToString("F9", CultureInfo.InvariantCulture),
-            localizer.ElevationFeet.ToString(CultureInfo.InvariantCulture),
-            localizer.Frequency.ToString(CultureInfo.InvariantCulture),
-            localizer.RangeNm.ToString(CultureInfo.InvariantCulture),
-            correction.CorrectedEncodedCourse!.Value.ToString("F3", CultureInfo.InvariantCulture),
-            localizer.Identifier,
-            localizer.AirportIcao,
-            localizer.RegionCode,
-            localizer.RunwayIdentifier,
-            localizer.Name);
+        var latitude = correction.CorrectedLatitude!.Value;
+        var longitude = correction.CorrectedLongitude!.Value;
+        var encodedCourse = correction.CorrectedEncodedCourse!.Value;
+
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"{localizer.RowCode,2} " +
+            $"{latitude,13:F9} " +
+            $"{longitude,14:F9} " +
+            $"{localizer.ElevationFeet,8} " +
+            $"{localizer.Frequency,8} " +
+            $"{localizer.RangeNm,5} " +
+            $"{encodedCourse,11:F3}  " +
+            $"{localizer.Identifier} " +
+            $"{localizer.AirportIcao} " +
+            $"{localizer.RegionCode} " +
+            $"{localizer.RunwayIdentifier} " +
+            $"{localizer.Name}");
     }
 }
