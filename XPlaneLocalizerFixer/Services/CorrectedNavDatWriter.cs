@@ -40,15 +40,18 @@ public class CorrectedNavDatWriter : ICorrectedNavDatWriter
         writer.NewLine = "\n";
 
         writer.WriteLine(Header);
+        writer.WriteLine();
 
         foreach (var (correction, navAdis) in corrections)
         {
             writer.WriteLine(FormatLocalizer(correction));
             writer.WriteLine(navAdis.GlideSlope!.RawLine);
 
-            if (navAdis.Dme is not null) writer.WriteLine(navAdis.Dme.RawLine);
+            if (navAdis.Dme is not null)
+                writer.WriteLine(navAdis.Dme.RawLine);
         }
 
+        writer.WriteLine();
         writer.WriteLine("99");
     }
 
