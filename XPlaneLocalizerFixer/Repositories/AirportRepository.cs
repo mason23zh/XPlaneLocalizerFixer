@@ -30,7 +30,12 @@ public sealed class AirportRepository : IAirportRepository
 
     public IReadOnlyList<Airport> GetAirports()
     {
-        var lines = _fileReader.ReadLines(_options.AptDatFileName);
+        var filePath = Path.Combine(
+            AppContext.BaseDirectory,
+            _options.InputDirectory,
+            _options.AptDatFileName);
+
+        var lines = _fileReader.ReadLines(filePath);
 
         return _parser.Parse(lines);
     }
