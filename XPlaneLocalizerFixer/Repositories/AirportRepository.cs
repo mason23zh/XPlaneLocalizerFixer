@@ -1,4 +1,6 @@
-﻿using XPlaneLocalizerFixer.Models;
+﻿using Microsoft.Extensions.Options;
+using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories.IO;
 
@@ -12,22 +14,23 @@ namespace XPlaneLocalizerFixer.Repositories;
 /// </remarks>
 public sealed class AirportRepository : IAirportRepository
 {
-    private const string FileName = "apt.dat";
-
     private readonly IFileReader _fileReader;
+    private readonly FilePathOptions _options;
     private readonly IAptDatParser _parser;
 
     public AirportRepository(
         IFileReader fileReader,
-        IAptDatParser parser)
+        IAptDatParser parser,
+        IOptions<FilePathOptions> options)
     {
         _fileReader = fileReader;
         _parser = parser;
+        _options = options.Value;
     }
 
     public IReadOnlyList<Airport> GetAirports()
     {
-        var lines = _fileReader.ReadLines(FileName);
+        var lines = _fileReader.ReadLines(_options.AptDatFileName);
 
         return _parser.Parse(lines);
     }
