@@ -6,7 +6,7 @@
 /// </summary>
 public sealed class FilePathOptions
 {
-    public const string SectionName = "FilePath";
+    public const string SectionName = "FilePaths";
 
     /// <summary>
     ///     Directory containing the input nav data files.
