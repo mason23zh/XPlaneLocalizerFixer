@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Spectre.Console;
 using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Services;
 
 namespace XPlaneLocalizerFixer.ConsoleUI;
@@ -95,33 +96,31 @@ public sealed class ConsoleApplication
             outputDirectory,
             _fileOptions.OutputFileName);
 
-        try
-        {
-            var result = _workflow.Execute(outputPath);
+        LocalizerFixerWorkflowResult? result = null;
 
-            AnsiConsole.MarkupLine(
-                $"[green]Successfully corrected " +
-                $"{result.CorrectedCount} localizers.[/]");
+        AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(Style.Parse("cyan"))
+            .Start(
+                "Processing localizer corrections...",
+                _ => { result = _workflow.Execute(outputPath); });
 
-            if (result.OutputPath is null)
-            {
-                AnsiConsole.MarkupLine(
-                    "[yellow]No corrections were generated.[/]");
+        if (result is null)
+            throw new InvalidOperationException(
+                "The localizer correction workflow did not return a result.");
 
-                return;
-            }
+        AnsiConsole.MarkupLine(
+            $"[green]Successfully corrected {result.CorrectedCount} localizers.[/]");
 
-            AnsiConsole.MarkupLine(
-                $"Generated file: [cyan]" +
-                $"{Markup.Escape(result.OutputPath)}[/]");
-        }
-        catch (Exception ex) when (
-            ex is IOException or UnauthorizedAccessException
-                or InvalidOperationException or ArgumentException)
+        if (result.OutputPath is null)
         {
             AnsiConsole.MarkupLine(
-                $"[red]Error:[/] {Markup.Escape(ex.Message)}[/])");
+                "[yellow]No corrections were generated.[/]");
+            return;
         }
+
+        AnsiConsole.MarkupLine("Generated file:");
+        AnsiConsole.WriteLine(result.OutputPath);
     }
 
     /// <summary>
