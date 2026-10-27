@@ -27,8 +27,8 @@ public sealed class LocalizerRunwayMatcher : ILocalizerRunwayMatcher
                     new { Airport = airport, Runway = runway }))
             .Where(canditate =>
                 string.Equals(
-                    canditate.Runway.Identifier,
-                    localizer.RunwayIdentifier,
+                    NormalizeRunwayIdentifier(canditate.Runway.Identifier),
+                    NormalizeRunwayIdentifier(localizer.RunwayIdentifier),
                     StringComparison.OrdinalIgnoreCase))
             .Take(2)
             .ToList();
@@ -41,5 +41,20 @@ public sealed class LocalizerRunwayMatcher : ILocalizerRunwayMatcher
             localizer,
             match.Airport,
             match.Runway);
+    }
+
+    /// <summary>
+    ///     Trim out the leading '0' in earth_nav.dat during the matching
+    /// </summary>
+    /// <remarks>
+    ///     For example, the runway '7' from apt.dat will be matched to runway '7' in earth_nav.dat
+    ///     otherwise it might match to runway '07' in earth_nav.dat, cause mismatch.
+    /// </remarks>
+    private static string NormalizeRunwayIdentifier(string runwayIdentifier)
+    {
+        return runwayIdentifier
+            .Trim()
+            .TrimStart('0')
+            .ToUpperInvariant();
     }
 }

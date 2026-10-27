@@ -197,4 +197,62 @@ public class LocalizerRunwayMatcherTests
             RawLine = "4  22.308577778  113.890702778       21    10930    18  91690.800 ITFC VHHH VH 25C ILS-cat-II"
         };
     }
+
+    [Theory]
+    [InlineData("7", "07")]
+    [InlineData("8", "08")]
+    [InlineData("1L", "01L")]
+    [InlineData("2R", "02R")]
+    [InlineData("02L", "02L")]
+    [InlineData("16R", "16R")]
+    public void Match_WhenRunwayIdentifiersHaveDifferentLeadingZeros_ReturnsMatch(
+        string airportRunwayIdentifier,
+        string localizerRunwayIdentifier)
+    {
+        // Arrange
+        var localizer = new Localizer
+        {
+            AirportIcao = "KDEN",
+            RunwayIdentifier = localizerRunwayIdentifier,
+            Name = "DENVER INTL",
+            EncodedCourse = 0,
+            RowCode = 0,
+            Position = default,
+            ElevationFeet = 0,
+            Frequency = 0,
+            RangeNm = 0,
+            Identifier = "IDXU",
+            RegionCode = "K2",
+            RawLine = " 4  39.840633333 -104.680294444     5341    11155    18  29610.513 IDZG KDEN K2 07 ILS-cat-I"
+        };
+
+        var runway = new Runway
+        {
+            Identifier = airportRunwayIdentifier,
+            StartPosition = default,
+            EndPosition = default
+        };
+
+        var airport = new Airport
+        {
+            Identifier = "KDEN",
+            Runways =
+            [
+                runway
+            ],
+            Name = "DENVER INTL"
+        };
+
+
+        var matcher = new LocalizerRunwayMatcher();
+
+        // Act
+        var result = matcher.Match(localizer, [airport]);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Same(localizer, result.Localizer);
+        Assert.Same(airport, result.Airport);
+        Assert.Same(runway, result.Runway);
+    }
 }
