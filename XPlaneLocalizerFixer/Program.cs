@@ -44,30 +44,3 @@ var application = host.Services
     .GetRequiredService<ConsoleApplication>();
 
 application.Run();
-
-// get the configured file paths.
-// var fileOptions = host.Services
-//     .GetRequiredService<IOptions<FilePathOptions>>()
-//     .Value;
-//
-// var outputDirectory = Path.GetFullPath(
-//     fileOptions.OutputDirectory,
-//     AppContext.BaseDirectory);
-//
-// var outputPath = Path.Combine(
-//     outputDirectory,
-//     fileOptions.OutputFileName);
-//
-// var workFlow = host.Services.GetRequiredService<ILocalizerFixerWorkflow>();
-//
-// var result = workFlow.Execute(outputPath);
-//
-// Console.WriteLine($"Successfully corrected {result.CorrectedCount} localizers.");
-//
-// if (result.OutputPath is null)
-// {
-//     Console.WriteLine("No corrections were generated.");
-//     return;
-// }
-//
-// Console.WriteLine($"Generated file: {outputPath}");
