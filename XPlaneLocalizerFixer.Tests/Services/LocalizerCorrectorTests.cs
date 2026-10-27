@@ -1,4 +1,6 @@
-﻿using XPlaneLocalizerFixer.Geometry;
+﻿using Microsoft.Extensions.Options;
+using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.Geometry;
 using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Services;
 
@@ -55,7 +57,13 @@ public class LocalizerCorrectorTests
             null!,
             runway);
 
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -134,7 +142,13 @@ public class LocalizerCorrectorTests
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
 
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -183,7 +197,13 @@ public class LocalizerCorrectorTests
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
 
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -238,7 +258,13 @@ public class LocalizerCorrectorTests
         };
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -296,7 +322,13 @@ public class LocalizerCorrectorTests
             null!,
             runway);
 
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -379,7 +411,13 @@ public class LocalizerCorrectorTests
             null!,
             runway);
 
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -446,7 +484,13 @@ public class LocalizerCorrectorTests
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
 
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -528,7 +572,12 @@ public class LocalizerCorrectorTests
         };
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            }));
 
         var result = corrector.Correct(match);
 
@@ -594,7 +643,13 @@ public class LocalizerCorrectorTests
         };
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var result = corrector.Correct(match);
 
@@ -635,7 +690,12 @@ public class LocalizerCorrectorTests
         };
 
         var match = new LocalizerRunwayMatch(localizer, null!, runway);
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            }));
 
         var result = corrector.Correct(match);
 

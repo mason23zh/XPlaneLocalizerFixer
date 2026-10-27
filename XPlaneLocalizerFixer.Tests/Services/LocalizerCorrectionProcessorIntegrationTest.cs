@@ -1,4 +1,6 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
+using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Services;
@@ -58,7 +60,13 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             navDataRepository.Object,
             new LocalizerNavAidMatcher(),
             new LocalizerRunwayMatcher(),
-            new LocalizerCorrector());
+            new LocalizerCorrector(
+                Options.Create(new LocalizerCorrectionOptions
+                {
+                    MaxLateralDeviationMeters = 50.0,
+                    MaxHeadingDeviationDegrees = 1.0
+                })
+            ));
 
         // Act
         var results = processor.Process();
@@ -130,7 +138,13 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
         // Use the real matchers and correction algorithm.
         var navAidMatcher = new LocalizerNavAidMatcher();
         var runwayMatcher = new LocalizerRunwayMatcher();
-        var corrector = new LocalizerCorrector();
+        var corrector = new LocalizerCorrector(
+            Options.Create(new LocalizerCorrectionOptions
+            {
+                MaxLateralDeviationMeters = 50.0,
+                MaxHeadingDeviationDegrees = 1.0
+            })
+        );
 
         var navAidMatch = navAidMatcher.Match(localizer, navData);
 
