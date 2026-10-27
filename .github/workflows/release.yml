@@ -1,0 +1,98 @@
+﻿name: Build Release Packages
+
+on:
+  # Test the publishing workflow on the feature branch.
+  push:
+    branches:
+      - feature/publishing
+
+  # Allow manual execution once the workflow exists on main.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.runtime }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - win-x64
+          - osx-x64
+          - osx-arm64
+          - linux-x64
+
+    steps:
+      # Retrieve the repository source code.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install the .NET 10 SDK.
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Run the existing unit tests before packaging.
+      - name: Run unit tests
+        run: dotnet test --configuration Release
+
+      # Publish a self-contained, platform-specific executable.
+      - name: Publish application
+        run: |
+          dotnet publish XPlaneLocalizerFixer/XPlaneLocalizerFixer.csproj \
+            --configuration Release \
+            --runtime ${{ matrix.runtime }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=false \
+            --output ./publish/${{ matrix.runtime }}
+
+      # Prepare a distributable directory with editable configuration
+      # and empty input/output folders.
+      - name: Prepare package
+        shell: bash
+        run: |
+          PACKAGE_DIR="./package/XPlaneLocalizerFixer"
+
+          mkdir -p "$PACKAGE_DIR/input"
+          mkdir -p "$PACKAGE_DIR/output"
+
+          cp -a ./publish/${{ matrix.runtime }}/. "$PACKAGE_DIR/"
+
+          # Keep configuration external and editable.
+          cp XPlaneLocalizerFixer/appsettings.json "$PACKAGE_DIR/appsettings.json"
+
+          # Preserve executable permissions for Unix platforms.
+          if [[ "${{ matrix.runtime }}" != win-* ]]; then
+            chmod +x "$PACKAGE_DIR/XPlaneLocalizerFixer"
+          fi
+
+      # Windows users receive a ZIP archive.
+      - name: Package Windows
+        if: startsWith(matrix.runtime, 'win-')
+        shell: bash
+        run: |
+          cd package
+          zip -r "../XPlaneLocalizerFixer-${{ matrix.runtime }}.zip" XPlaneLocalizerFixer
+
+      # macOS/Linux users receive a TAR.GZ archive to preserve permissions.
+      - name: Package macOS and Linux
+        if: ${{ !startsWith(matrix.runtime, 'win-') }}
+        shell: bash
+        run: |
+          tar -czf "XPlaneLocalizerFixer-${{ matrix.runtime }}.tar.gz" \
+            -C package XPlaneLocalizerFixer
+
+      # Upload the completed archive to the workflow run.
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XPlaneLocalizerFixer-${{ matrix.runtime }}
+          path: XPlaneLocalizerFixer-${{ matrix.runtime }}.*
+          if-no-files-found: error
+          retention-days: 14
