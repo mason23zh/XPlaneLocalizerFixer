@@ -36,7 +36,7 @@ public sealed class ConsoleApplication
             AnsiConsole.Clear();
 
             AnsiConsole.Write(
-                new Rule("[bold cyan] X-Plane 12 Localizer Fixer[/]"));
+                new Rule("[bold cyan]X-Plane 12 Localizer Fixer[/]"));
 
             AnsiConsole.WriteLine();
 
@@ -48,20 +48,27 @@ public sealed class ConsoleApplication
                         "View configuration",
                         "Exit"));
 
+            if (selection == "Exit")
+                return;
+
             AnsiConsole.WriteLine();
 
-            switch (selection)
+            try
             {
-                case "Generate corrected nav data":
-                    GenerateNavData();
-                    break;
+                switch (selection)
+                {
+                    case "Generate corrected nav data":
+                        GenerateNavData();
+                        break;
 
-                case "View configuration":
-                    ShowConfiguration();
-                    break;
-
-                case "Exit":
-                    return;
+                    case "View configuration":
+                        ShowConfiguration();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
             }
 
             AnsiConsole.WriteLine();
@@ -77,6 +84,9 @@ public sealed class ConsoleApplication
     /// </summary>
     private void GenerateNavData()
     {
+        if (!ValidateInputFiles())
+            return;
+
         var outputDirectory = Path.GetFullPath(
             _fileOptions.OutputDirectory,
             AppContext.BaseDirectory);
@@ -146,5 +156,108 @@ public sealed class ConsoleApplication
             $"{_correctionOptions.MaxHeadingDeviationDegrees}°");
 
         AnsiConsole.Write(table);
+    }
+
+    /// <summary>
+    ///     Check if the required airport and nav data files exist in the configured input directory
+    /// </summary>
+    /// <returns>
+    ///     True when both input files exsits, false otherwise.
+    /// </returns>
+    private bool ValidateInputFiles()
+    {
+        var inputDirectory = Path.GetFullPath(
+            _fileOptions.InputDirectory,
+            AppContext.BaseDirectory);
+
+        var aptDatPath = Path.Combine(
+            inputDirectory,
+            _fileOptions.AptDatFileName);
+
+        var earthNavDatPath = Path.Combine(
+            inputDirectory,
+            _fileOptions.EarthNavDatFileName);
+
+        if (!Directory.Exists(inputDirectory))
+        {
+            AnsiConsole.MarkupLine(
+                "[red]Input directory does not exist.[/]");
+
+            AnsiConsole.WriteLine(inputDirectory);
+            return false;
+        }
+
+        var valid = true;
+
+        if (!File.Exists(aptDatPath))
+        {
+            AnsiConsole.MarkupLine("[red]Missing apt.dat file:[/]");
+            AnsiConsole.WriteLine(aptDatPath);
+            valid = false;
+        }
+
+        if (!File.Exists(earthNavDatPath))
+        {
+            AnsiConsole.MarkupLine("[red]Missing earth_nav.dat file:[/]");
+            AnsiConsole.WriteLine(earthNavDatPath);
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    private static void HandleException(Exception exception)
+    {
+        AnsiConsole.WriteLine();
+
+        switch (exception)
+        {
+            case FileNotFoundException ex:
+                AnsiConsole.MarkupLine(
+                    "[red]Required input file was not found.[/]");
+
+                if (!string.IsNullOrWhiteSpace(ex.FileName))
+                    AnsiConsole.WriteLine(ex.FileName);
+
+                break;
+
+            case DirectoryNotFoundException ex:
+                AnsiConsole.MarkupLine(
+                    "[red]A required directory was not found.[/]");
+
+                AnsiConsole.WriteLine(ex.Message);
+                break;
+
+            case UnauthorizedAccessException ex:
+                AnsiConsole.MarkupLine(
+                    "[red]Access denied.[/]");
+
+                AnsiConsole.WriteLine(ex.Message);
+                break;
+
+            case IOException ex:
+                AnsiConsole.MarkupLine(
+                    "[red]A file operation failed.[/]");
+
+                AnsiConsole.WriteLine(ex.Message);
+                break;
+
+            case ArgumentException ex:
+                AnsiConsole.MarkupLine(
+                    "[red]Invalid application configuration or input.[/]");
+
+                AnsiConsole.WriteLine(ex.Message);
+                break;
+
+            default:
+                AnsiConsole.MarkupLine(
+                    "[red bold]An unexpected error occurred.[/]");
+
+                AnsiConsole.WriteException(
+                    exception,
+                    ExceptionFormats.ShortenPaths);
+
+                break;
+        }
     }
 }
