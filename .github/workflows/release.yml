@@ -1,12 +1,13 @@
-﻿name: Build Release Packages
+﻿
+name: Build Release Packages
 
 on:
-  # Test the publishing workflow on the feature branch.
   push:
     branches:
       - feature/publishing
+    tags:
+      - "v*"
 
-  # Allow manual execution once the workflow exists on main.
   workflow_dispatch:
 
 permissions:
@@ -27,21 +28,18 @@ jobs:
           - linux-x64
 
     steps:
-      # Retrieve the repository source code.
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install the .NET 10 SDK.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      # Run the existing unit tests before packaging.
       - name: Run unit tests
         run: dotnet test --configuration Release
 
-      # Publish a self-contained, platform-specific executable.
+      # Publish a self-contained executable for each platform.
       - name: Publish application
         run: |
           dotnet publish XPlaneLocalizerFixer/XPlaneLocalizerFixer.csproj \
@@ -52,8 +50,7 @@ jobs:
             -p:PublishTrimmed=false \
             --output ./publish/${{ matrix.runtime }}
 
-      # Prepare a distributable directory with editable configuration
-      # and empty input/output folders.
+      # Create the release directory structure.
       - name: Prepare package
         shell: bash
         run: |
@@ -64,23 +61,21 @@ jobs:
 
           cp -a ./publish/${{ matrix.runtime }}/. "$PACKAGE_DIR/"
 
-          # Keep configuration external and editable.
-          cp XPlaneLocalizerFixer/appsettings.json "$PACKAGE_DIR/appsettings.json"
+          cp XPlaneLocalizerFixer/appsettings.json \
+            "$PACKAGE_DIR/appsettings.json"
 
-          # Preserve executable permissions for Unix platforms.
           if [[ "${{ matrix.runtime }}" != win-* ]]; then
             chmod +x "$PACKAGE_DIR/XPlaneLocalizerFixer"
           fi
 
-      # Windows users receive a ZIP archive.
       - name: Package Windows
         if: startsWith(matrix.runtime, 'win-')
         shell: bash
         run: |
           cd package
-          zip -r "../XPlaneLocalizerFixer-${{ matrix.runtime }}.zip" XPlaneLocalizerFixer
+          zip -r "../XPlaneLocalizerFixer-${{ matrix.runtime }}.zip" \
+            XPlaneLocalizerFixer
 
-      # macOS/Linux users receive a TAR.GZ archive to preserve permissions.
       - name: Package macOS and Linux
         if: ${{ !startsWith(matrix.runtime, 'win-') }}
         shell: bash
@@ -88,11 +83,60 @@ jobs:
           tar -czf "XPlaneLocalizerFixer-${{ matrix.runtime }}.tar.gz" \
             -C package XPlaneLocalizerFixer
 
-      # Upload the completed archive to the workflow run.
+      # Store each package for the release job.
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: XPlaneLocalizerFixer-${{ matrix.runtime }}
           path: XPlaneLocalizerFixer-${{ matrix.runtime }}.*
           if-no-files-found: error
-          retention-days: 14
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+
+    # Only create a GitHub Release for version tags.
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: write
+
+    steps:
+      # Download all four packages from the publish jobs.
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: XPlaneLocalizerFixer-*
+          path: ./dist
+
+      # Publish all archives in one GitHub Release.
+      - name: Create GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mapfile -d '' -t files < <(
+            find ./dist -type f \
+              \( -name '*.zip' -o -name '*.tar.gz' \) \
+              -print0
+          )
+
+          if [ "${#files[@]}" -ne 4 ]; then
+            echo "Expected four release archives."
+            exit 1
+          fi
+
+          release_flags=()
+
+          # Versions containing a hyphen are pre-releases.
+          if [[ "$TAG" == *-* ]]; then
+            release_flags+=(--prerelease)
+          fi
+
+          gh release create "$TAG" "${files[@]}" \
+            --verify-tag \
+            --generate-notes \
+            "${release_flags[@]}"
