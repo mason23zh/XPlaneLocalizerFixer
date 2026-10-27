@@ -60,6 +60,9 @@ jobs:
           mkdir -p "$PACKAGE_DIR/output"
 
           cp -a ./publish/${{ matrix.runtime }}/. "$PACKAGE_DIR/"
+          
+          # Remove debugging symbols from the distributed package.
+          find "$PACKAGE_DIR" -type f -name '*.pdb' -delete
 
           cp XPlaneLocalizerFixer/appsettings.json \
             "$PACKAGE_DIR/appsettings.json"
