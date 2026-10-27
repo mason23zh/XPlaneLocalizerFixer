@@ -1,12 +1,19 @@
-﻿using XPlaneLocalizerFixer.Geometry;
+﻿using Microsoft.Extensions.Options;
+using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.Geometry;
 using XPlaneLocalizerFixer.Models;
 
 namespace XPlaneLocalizerFixer.Services;
 
 public class LocalizerCorrector : ILocalizerCorrector
 {
-    private const double MaxHeadingDifferenceDegrees = 1.0;
-    private const double MaxLateralDisplacementMeters = 50.0;
+    private readonly LocalizerCorrectionOptions _options;
+
+    public LocalizerCorrector(IOptions<LocalizerCorrectionOptions> options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        _options = options.Value;
+    }
 
     public LocalizerCorrectionResult Correct(LocalizerRunwayMatch match)
     {
@@ -45,7 +52,7 @@ public class LocalizerCorrector : ILocalizerCorrector
             runwayHeading);
 
         // Protect intentionally offset localizer approaches.
-        if (headingDifference >= MaxHeadingDifferenceDegrees)
+        if (headingDifference >= _options.MaxHeadingDeviationDegrees)
             return Skipped(
                 localizer,
                 "Localizer heading differs from runway heading by at least 1 degree.");
@@ -69,10 +76,10 @@ public class LocalizerCorrector : ILocalizerCorrector
                 localizer,
                 "Invalid geodesic projection result.");
 
-        if (lateralDisplacement > MaxLateralDisplacementMeters)
+        if (lateralDisplacement > _options.MaxLateralDeviationMeters)
             return Skipped(
                 localizer,
-                $"Lateral displacement exceeds {MaxLateralDisplacementMeters} metres.",
+                $"Lateral displacement exceeds {_options.MaxLateralDeviationMeters} metres.",
                 lateralDisplacement);
 
         // Preserve the integer magnetic-course portion of X-Plane's encoding.
