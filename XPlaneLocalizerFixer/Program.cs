@@ -22,6 +22,7 @@ builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 builder.Services.AddTransient<INavDataRepository, NavDataRepository>();
 
 //services
+builder.Services.AddSingleton<ILocalizerFixerWorkflow, LocalizerFixerWorkflow>();
 builder.Services.AddSingleton<ILocalizerRunwayMatcher, LocalizerRunwayMatcher>();
 builder.Services.AddSingleton<ILocalizerNavAidMatcher, LocalizerNavAidMatcher>();
 builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
@@ -36,24 +37,6 @@ builder.Services.Configure<LocalizerCorrectionOptions>(
 
 using var host = builder.Build();
 
-// simple workflow test
-var processor = host.Services
-    .GetRequiredService<ILocalizerCorrectionProcessor>();
-
-var writer = host.Services
-    .GetRequiredService<ICorrectedNavDatWriter>();
-
-// process all eligible ILS localizers
-var corrections = processor.Process();
-
-Console.WriteLine($"Successfully corrected {corrections.Count} localizers.");
-
-if (corrections.Count == 0)
-{
-    Console.WriteLine("No corrections were generated..");
-    return;
-}
-
 // get the configured file paths.
 var fileOptions = host.Services
     .GetRequiredService<IOptions<FilePathOptions>>()
@@ -63,10 +46,20 @@ var outputDirectory = Path.GetFullPath(
     fileOptions.OutputDirectory,
     AppContext.BaseDirectory);
 
-Directory.CreateDirectory(outputDirectory);
+var outputPath = Path.Combine(
+    outputDirectory,
+    fileOptions.OutputFileName);
 
-var outputPath = Path.Combine(outputDirectory, fileOptions.OutputFileName);
+var workFlow = host.Services.GetRequiredService<ILocalizerFixerWorkflow>();
 
-writer.Write(outputPath, corrections);
+var result = workFlow.Execute(outputPath);
+
+Console.WriteLine($"Successfully corrected {result.CorrectedCount} localizers.");
+
+if (result.OutputPath is null)
+{
+    Console.WriteLine("No corrections were generated.");
+    return;
+}
 
 Console.WriteLine($"Generated file: {outputPath}");
