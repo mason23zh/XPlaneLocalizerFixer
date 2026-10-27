@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.ConsoleUI;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.IO;
@@ -29,6 +29,9 @@ builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
 builder.Services.AddSingleton<ILocalizerCorrectionProcessor, LocalizerCorrectionProcessor>();
 builder.Services.AddSingleton<ICorrectedNavDatWriter, CorrectedNavDatWriter>();
 
+// Console UI
+builder.Services.AddSingleton<ConsoleApplication>();
+
 // Configuration
 builder.Services.Configure<FilePathOptions>(
     builder.Configuration.GetSection(FilePathOptions.SectionName));
@@ -37,29 +40,34 @@ builder.Services.Configure<LocalizerCorrectionOptions>(
 
 using var host = builder.Build();
 
+var application = host.Services
+    .GetRequiredService<ConsoleApplication>();
+
+application.Run();
+
 // get the configured file paths.
-var fileOptions = host.Services
-    .GetRequiredService<IOptions<FilePathOptions>>()
-    .Value;
-
-var outputDirectory = Path.GetFullPath(
-    fileOptions.OutputDirectory,
-    AppContext.BaseDirectory);
-
-var outputPath = Path.Combine(
-    outputDirectory,
-    fileOptions.OutputFileName);
-
-var workFlow = host.Services.GetRequiredService<ILocalizerFixerWorkflow>();
-
-var result = workFlow.Execute(outputPath);
-
-Console.WriteLine($"Successfully corrected {result.CorrectedCount} localizers.");
-
-if (result.OutputPath is null)
-{
-    Console.WriteLine("No corrections were generated.");
-    return;
-}
-
-Console.WriteLine($"Generated file: {outputPath}");
+// var fileOptions = host.Services
+//     .GetRequiredService<IOptions<FilePathOptions>>()
+//     .Value;
+//
+// var outputDirectory = Path.GetFullPath(
+//     fileOptions.OutputDirectory,
+//     AppContext.BaseDirectory);
+//
+// var outputPath = Path.Combine(
+//     outputDirectory,
+//     fileOptions.OutputFileName);
+//
+// var workFlow = host.Services.GetRequiredService<ILocalizerFixerWorkflow>();
+//
+// var result = workFlow.Execute(outputPath);
+//
+// Console.WriteLine($"Successfully corrected {result.CorrectedCount} localizers.");
+//
+// if (result.OutputPath is null)
+// {
+//     Console.WriteLine("No corrections were generated.");
+//     return;
+// }
+//
+// Console.WriteLine($"Generated file: {outputPath}");
