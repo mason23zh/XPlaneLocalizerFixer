@@ -179,18 +179,6 @@ public sealed class ConsoleApplication
             Markup.Escape(_xplaneRootPath ?? "Not selected"));
 
         table.AddRow(
-            "Input directory",
-            Markup.Escape(_fileOptions.InputDirectory));
-
-        table.AddRow(
-            "Airport data",
-            Markup.Escape(_fileOptions.AptDatFileName));
-
-        table.AddRow(
-            "Navigation data",
-            Markup.Escape(_fileOptions.EarthNavDatFileName));
-
-        table.AddRow(
             "Output directory",
             Markup.Escape(_fileOptions.OutputDirectory));
 
