@@ -11,10 +11,15 @@ public interface ILocalizerCorrectionProcessor
     /// <summary>
     ///     Process ILS Localizer that have an associated glideslope
     /// </summary>
+    /// <param name="excludedAirportIdentifiers">
+    ///     Airport identifiers that must not receive localizer correction
+    /// </param>
     /// <returns>
     ///     Successful localizer corrections paired with their original glideslope and DME records
     /// </returns>
     IReadOnlyList<(
         LocalizerCorrectionResult Correction,
-        LocalizerNavAidMatch NavAids)> Process();
+        LocalizerNavAidMatch NavAids)> Process(
+        IReadOnlySet<string> excludedAirportIdentifiers
+    );
 }

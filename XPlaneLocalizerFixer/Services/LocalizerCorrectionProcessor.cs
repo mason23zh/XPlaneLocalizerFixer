@@ -26,7 +26,9 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
         _corrector = corrector;
     }
 
-    public IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> Process()
+    public IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> Process(
+        IReadOnlySet<string> excludedAirportIdentifiers
+    )
     {
         var airports = _airportRepository.GetAirports();
         var navData = _navDataRepository.GetNavData();
@@ -38,6 +40,11 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
 
         foreach (var loc in navData.Localizers)
         {
+            // skip airports if runway definitions come from custom scenery
+            if (loc.AirportIcao is not null &&
+                excludedAirportIdentifiers.Contains(loc.AirportIcao))
+                continue;
+
             // only ILS paired localizers are considered
             if (loc.RowCode != 4)
                 continue;
