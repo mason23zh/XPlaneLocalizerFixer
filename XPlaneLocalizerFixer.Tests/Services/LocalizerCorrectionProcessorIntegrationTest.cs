@@ -69,7 +69,7 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             ));
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
@@ -180,7 +180,7 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             runwayMatcher,
             corrector);
 
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         Assert.Empty(results);
 

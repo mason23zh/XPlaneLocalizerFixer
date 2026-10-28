@@ -49,7 +49,7 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -101,7 +101,7 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -181,7 +181,7 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -286,7 +286,7 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -384,7 +384,7 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
@@ -501,7 +501,7 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
