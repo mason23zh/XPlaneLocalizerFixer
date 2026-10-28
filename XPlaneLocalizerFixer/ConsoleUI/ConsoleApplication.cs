@@ -121,9 +121,6 @@ public sealed class ConsoleApplication
     /// </summary>
     private void GenerateNavData()
     {
-        if (!ValidateInputFiles())
-            return;
-
         var outputDirectory = Path.GetFullPath(
             _fileOptions.OutputDirectory,
             AppContext.BaseDirectory);
@@ -214,54 +211,6 @@ public sealed class ConsoleApplication
             $"{_correctionOptions.MaxHeadingDeviationDegrees}°");
 
         AnsiConsole.Write(table);
-    }
-
-    /// <summary>
-    ///     Check if the required airport and nav data files exist in the configured input directory
-    /// </summary>
-    /// <returns>
-    ///     True when both input files exsits, false otherwise.
-    /// </returns>
-    private bool ValidateInputFiles()
-    {
-        var inputDirectory = Path.GetFullPath(
-            _fileOptions.InputDirectory,
-            AppContext.BaseDirectory);
-
-        var aptDatPath = Path.Combine(
-            inputDirectory,
-            _fileOptions.AptDatFileName);
-
-        var earthNavDatPath = Path.Combine(
-            inputDirectory,
-            _fileOptions.EarthNavDatFileName);
-
-        if (!Directory.Exists(inputDirectory))
-        {
-            AnsiConsole.MarkupLine(
-                "[red]Input directory does not exist.[/]");
-
-            AnsiConsole.WriteLine(inputDirectory);
-            return false;
-        }
-
-        var valid = true;
-
-        if (!File.Exists(aptDatPath))
-        {
-            AnsiConsole.MarkupLine("[red]Missing apt.dat file:[/]");
-            AnsiConsole.WriteLine(aptDatPath);
-            valid = false;
-        }
-
-        if (!File.Exists(earthNavDatPath))
-        {
-            AnsiConsole.MarkupLine("[red]Missing earth_nav.dat file:[/]");
-            AnsiConsole.WriteLine(earthNavDatPath);
-            valid = false;
-        }
-
-        return valid;
     }
 
     private static void HandleException(Exception exception)
