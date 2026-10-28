@@ -32,6 +32,7 @@ builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
 builder.Services.AddSingleton<ILocalizerCorrectionProcessor, LocalizerCorrectionProcessor>();
 builder.Services.AddSingleton<ICorrectedNavDatWriter, CorrectedNavDatWriter>();
 builder.Services.AddSingleton<IXPlaneInstallationValidator, XPlaneInstallationValidator>();
+builder.Services.AddSingleton<IXPlaneInstallationFolderPicker, XPlaneInstallationFolderPicker>();
 
 // Console UI
 builder.Services.AddSingleton<ConsoleApplication>();
