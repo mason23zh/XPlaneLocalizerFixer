@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Services;
+namespace XPlaneLocalizerFixer.Services.Interfaces;
 
 public interface ILocalizerRunwayMatcher
 {

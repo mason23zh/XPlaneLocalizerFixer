@@ -1,5 +1,7 @@
 ﻿using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Repositories;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
+using XPlaneLocalizerFixer.Services.Interfaces;
 
 namespace XPlaneLocalizerFixer.Services;
 
@@ -26,10 +28,17 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
         _corrector = corrector;
     }
 
-    public IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> Process()
+    public IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> Process(
+        string aptDatPath,
+        string earthNavDatPath,
+        IReadOnlySet<string> excludedAirportIdentifiers
+    )
     {
-        var airports = _airportRepository.GetAirports();
-        var navData = _navDataRepository.GetNavData();
+        ArgumentException.ThrowIfNullOrWhiteSpace(aptDatPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(earthNavDatPath);
+
+        var airports = _airportRepository.GetAirports(aptDatPath);
+        var navData = _navDataRepository.GetNavData(earthNavDatPath);
 
         var corrections = new List<(
             LocalizerCorrectionResult Correction,
@@ -38,6 +47,11 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
 
         foreach (var loc in navData.Localizers)
         {
+            // skip airports if runway definitions come from custom scenery
+            if (loc.AirportIcao is not null &&
+                excludedAirportIdentifiers.Contains(loc.AirportIcao))
+                continue;
+
             // only ILS paired localizers are considered
             if (loc.RowCode != 4)
                 continue;

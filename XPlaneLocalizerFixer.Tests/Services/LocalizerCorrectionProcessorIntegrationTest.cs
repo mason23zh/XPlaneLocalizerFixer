@@ -3,6 +3,7 @@ using Moq;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Services;
 
 namespace XPlaneLocalizerFixer.Tests.Services;
@@ -48,11 +49,11 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
         var navDataRepository = new Mock<INavDataRepository>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns(airports);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         var processor = new LocalizerCorrectionProcessor(
@@ -69,7 +70,10 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             ));
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(
+            "apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
@@ -166,11 +170,11 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
         var navDataRepository = new Mock<INavDataRepository>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns(airports);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         var processor = new LocalizerCorrectionProcessor(
@@ -180,7 +184,10 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             runwayMatcher,
             corrector);
 
-        var results = processor.Process();
+        var results = processor.Process(
+            "apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         Assert.Empty(results);
 

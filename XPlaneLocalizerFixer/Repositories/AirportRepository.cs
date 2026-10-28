@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Options;
-using XPlaneLocalizerFixer.Configuration;
-using XPlaneLocalizerFixer.Models;
+﻿using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
+using XPlaneLocalizerFixer.Parsers.Interfaces;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Repositories.IO;
+using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 namespace XPlaneLocalizerFixer.Repositories;
 
@@ -15,27 +16,22 @@ namespace XPlaneLocalizerFixer.Repositories;
 public sealed class AirportRepository : IAirportRepository
 {
     private readonly IFileReader _fileReader;
-    private readonly FilePathOptions _options;
     private readonly IAptDatParser _parser;
 
     public AirportRepository(
         IFileReader fileReader,
-        IAptDatParser parser,
-        IOptions<FilePathOptions> options)
+        IAptDatParser parser
+    )
     {
         _fileReader = fileReader;
         _parser = parser;
-        _options = options.Value;
     }
 
-    public IReadOnlyList<Airport> GetAirports()
+    public IReadOnlyList<Airport> GetAirports(string aptDatPath)
     {
-        var filePath = Path.Combine(
-            AppContext.BaseDirectory,
-            _options.InputDirectory,
-            _options.AptDatFileName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(aptDatPath);
 
-        var lines = _fileReader.ReadLines(filePath);
+        var lines = _fileReader.ReadLines(aptDatPath);
 
         return _parser.Parse(lines);
     }

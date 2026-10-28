@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using XPlaneLocalizerFixer.Models;
+using XPlaneLocalizerFixer.Parsers.Interfaces;
 using XPlaneLocalizerFixer.Utils;
 
 namespace XPlaneLocalizerFixer.Parsers;

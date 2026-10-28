@@ -1,4 +1,4 @@
-﻿namespace XPlaneLocalizerFixer.Repositories.IO;
+﻿namespace XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 public interface IFileReader
 {

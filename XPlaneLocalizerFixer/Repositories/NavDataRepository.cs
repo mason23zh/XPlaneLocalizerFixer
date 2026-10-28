@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Options;
-using XPlaneLocalizerFixer.Configuration;
-using XPlaneLocalizerFixer.Models;
+﻿using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
+using XPlaneLocalizerFixer.Parsers.Interfaces;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Repositories.IO;
+using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 namespace XPlaneLocalizerFixer.Repositories;
 
@@ -12,28 +13,22 @@ namespace XPlaneLocalizerFixer.Repositories;
 public sealed class NavDataRepository : INavDataRepository
 {
     private readonly IFileReader _fileReader;
-    private readonly FilePathOptions _options;
     private readonly IEarthNavDatParser _parser;
 
     public NavDataRepository(
         IFileReader fileReader,
-        IEarthNavDatParser parser,
-        IOptions<FilePathOptions> options
+        IEarthNavDatParser parser
     )
     {
         _fileReader = fileReader;
         _parser = parser;
-        _options = options.Value;
     }
 
-    public NavData GetNavData()
+    public NavData GetNavData(string earthNavDatPath)
     {
-        var filePath = Path.Combine(
-            AppContext.BaseDirectory,
-            _options.InputDirectory,
-            _options.EarthNavDatFileName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(earthNavDatPath);
 
-        var liens = _fileReader.ReadLines(filePath);
+        var liens = _fileReader.ReadLines(earthNavDatPath);
 
         return _parser.Parse(liens);
     }

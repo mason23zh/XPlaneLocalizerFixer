@@ -3,6 +3,7 @@ using Spectre.Console;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Services;
+using XPlaneLocalizerFixer.Services.Interfaces;
 
 namespace XPlaneLocalizerFixer.ConsoleUI;
 
@@ -13,21 +14,31 @@ public sealed class ConsoleApplication
 {
     private readonly LocalizerCorrectionOptions _correctionOptions;
     private readonly FilePathOptions _fileOptions;
+    private readonly IXPlaneInstallationFolderPicker _folderPicker;
+    private readonly IXPlaneInstallationValidator _installationValidator;
     private readonly ILocalizerFixerWorkflow _workflow;
+
+    private string? _xplaneRootPath;
 
     public ConsoleApplication(
         ILocalizerFixerWorkflow workflow,
         IOptions<FilePathOptions> fileOptions,
-        IOptions<LocalizerCorrectionOptions> correctionOptions
+        IOptions<LocalizerCorrectionOptions> correctionOptions,
+        IXPlaneInstallationFolderPicker folderPicker,
+        IXPlaneInstallationValidator installationValidator
     )
     {
         ArgumentNullException.ThrowIfNull(workflow);
         ArgumentNullException.ThrowIfNull(fileOptions);
         ArgumentNullException.ThrowIfNull(correctionOptions);
+        ArgumentNullException.ThrowIfNull(folderPicker);
+        ArgumentNullException.ThrowIfNull(installationValidator);
 
         _workflow = workflow;
         _fileOptions = fileOptions.Value;
         _correctionOptions = correctionOptions.Value;
+        _folderPicker = folderPicker;
+        _installationValidator = installationValidator;
     }
 
     public void Run()
@@ -41,13 +52,33 @@ public sealed class ConsoleApplication
 
             AnsiConsole.WriteLine();
 
+            if (_xplaneRootPath is not null)
+            {
+                AnsiConsole.MarkupLine(
+                    $"[green]X-Plane installation:[/] {Markup.Escape(_xplaneRootPath)}");
+
+                AnsiConsole.WriteLine();
+            }
+
+            var choices = _xplaneRootPath is null
+                ? new[]
+                {
+                    "Select X-Plane 12 installation",
+                    "View configuration",
+                    "Exit"
+                }
+                : new[]
+                {
+                    "Generate corrected nav data",
+                    "View configuration",
+                    "Change X-Plane installation",
+                    "Exit"
+                };
+
             var selection = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Select an [green]option[/]:")
-                    .AddChoices(
-                        "Generate corrected nav data",
-                        "View configuration",
-                        "Exit"));
+                    .AddChoices(choices));
 
             if (selection == "Exit")
                 return;
@@ -58,6 +89,11 @@ public sealed class ConsoleApplication
             {
                 switch (selection)
                 {
+                    case "Select X-Plane 12 installation":
+                    case "Change X-Plane installation":
+                        SelectXPlaneInstallation();
+                        continue;
+
                     case "Generate corrected nav data":
                         GenerateNavData();
                         break;
@@ -73,6 +109,7 @@ public sealed class ConsoleApplication
             }
 
             AnsiConsole.WriteLine();
+
             AnsiConsole.MarkupLine(
                 "[grey]Press any key to return to the menu...[/]");
 
@@ -85,9 +122,6 @@ public sealed class ConsoleApplication
     /// </summary>
     private void GenerateNavData()
     {
-        if (!ValidateInputFiles())
-            return;
-
         var outputDirectory = Path.GetFullPath(
             _fileOptions.OutputDirectory,
             AppContext.BaseDirectory);
@@ -96,6 +130,13 @@ public sealed class ConsoleApplication
             outputDirectory,
             _fileOptions.OutputFileName);
 
+        var reportPath = Path.Combine(
+            outputDirectory,
+            _fileOptions.ExcludedAirportsFileName);
+
+        if (_xplaneRootPath is null)
+            throw new InvalidOperationException("No X-Plane installation has been selected.");
+
         LocalizerFixerWorkflowResult? result = null;
 
         AnsiConsole.Status()
@@ -103,7 +144,7 @@ public sealed class ConsoleApplication
             .SpinnerStyle(Style.Parse("cyan"))
             .Start(
                 "Processing localizer corrections...",
-                _ => { result = _workflow.Execute(outputPath); });
+                _ => { result = _workflow.Execute(_xplaneRootPath, outputPath, reportPath); });
 
         if (result is null)
             throw new InvalidOperationException(
@@ -120,6 +161,7 @@ public sealed class ConsoleApplication
         }
 
         AnsiConsole.MarkupLine("Generated file:");
+        AnsiConsole.WriteLine(reportPath);
         AnsiConsole.WriteLine(result.OutputPath);
     }
 
@@ -133,76 +175,31 @@ public sealed class ConsoleApplication
             .AddColumn("Setting")
             .AddColumn("Value");
 
-        table.AddRow("Input directory",
-            Markup.Escape(_fileOptions.InputDirectory));
+        table.AddRow(
+            "X-Plane installation",
+            Markup.Escape(_xplaneRootPath ?? "Not selected"));
 
-        table.AddRow("Airport data",
-            Markup.Escape(_fileOptions.AptDatFileName));
-
-        table.AddRow("Navigation data",
-            Markup.Escape(_fileOptions.EarthNavDatFileName));
-
-        table.AddRow("Output directory",
+        table.AddRow(
+            "Output directory",
             Markup.Escape(_fileOptions.OutputDirectory));
 
-        table.AddRow("Output file",
+        table.AddRow(
+            "Output file",
             Markup.Escape(_fileOptions.OutputFileName));
 
-        table.AddRow("Max lateral deviation",
+        table.AddRow(
+            "Excluded airports report",
+            Markup.Escape(_fileOptions.ExcludedAirportsFileName));
+
+        table.AddRow(
+            "Max lateral deviation",
             $"{_correctionOptions.MaxLateralDeviationMeters} m");
 
-        table.AddRow("Max heading deviation",
+        table.AddRow(
+            "Max heading deviation",
             $"{_correctionOptions.MaxHeadingDeviationDegrees}°");
 
         AnsiConsole.Write(table);
-    }
-
-    /// <summary>
-    ///     Check if the required airport and nav data files exist in the configured input directory
-    /// </summary>
-    /// <returns>
-    ///     True when both input files exsits, false otherwise.
-    /// </returns>
-    private bool ValidateInputFiles()
-    {
-        var inputDirectory = Path.GetFullPath(
-            _fileOptions.InputDirectory,
-            AppContext.BaseDirectory);
-
-        var aptDatPath = Path.Combine(
-            inputDirectory,
-            _fileOptions.AptDatFileName);
-
-        var earthNavDatPath = Path.Combine(
-            inputDirectory,
-            _fileOptions.EarthNavDatFileName);
-
-        if (!Directory.Exists(inputDirectory))
-        {
-            AnsiConsole.MarkupLine(
-                "[red]Input directory does not exist.[/]");
-
-            AnsiConsole.WriteLine(inputDirectory);
-            return false;
-        }
-
-        var valid = true;
-
-        if (!File.Exists(aptDatPath))
-        {
-            AnsiConsole.MarkupLine("[red]Missing apt.dat file:[/]");
-            AnsiConsole.WriteLine(aptDatPath);
-            valid = false;
-        }
-
-        if (!File.Exists(earthNavDatPath))
-        {
-            AnsiConsole.MarkupLine("[red]Missing earth_nav.dat file:[/]");
-            AnsiConsole.WriteLine(earthNavDatPath);
-            valid = false;
-        }
-
-        return valid;
     }
 
     private static void HandleException(Exception exception)
@@ -257,6 +254,41 @@ public sealed class ConsoleApplication
                     ExceptionFormats.ShortenPaths);
 
                 break;
+        }
+    }
+
+    /// <summary>
+    ///     Prompt the user to select and validate an XPlnae 12 installation directory
+    /// </summary>
+    /// <returns></returns>
+    private bool SelectXPlaneInstallation()
+    {
+        while (true)
+        {
+            AnsiConsole.MarkupLine(
+                "[cyan]Select your X-Plane 12 installation folder.[/]");
+
+            var selectedPath = _folderPicker.SelectFolder();
+
+            if (selectedPath is null)
+                return false;
+
+            if (_installationValidator.IsValidInstallation(selectedPath))
+            {
+                _xplaneRootPath = selectedPath;
+
+                AnsiConsole.MarkupLine(
+                    "[green]X-Plane installation validated successfully.[/]");
+
+                AnsiConsole.WriteLine(selectedPath);
+                return true;
+            }
+
+            AnsiConsole.MarkupLine(
+                "[red]Invalid X-Plane installation directory.[/]");
+
+            if (!AnsiConsole.Confirm("Would you like to try again?"))
+                return false;
         }
     }
 }

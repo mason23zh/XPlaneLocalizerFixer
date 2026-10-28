@@ -1,4 +1,6 @@
-﻿namespace XPlaneLocalizerFixer.Repositories.IO;
+﻿using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
+
+namespace XPlaneLocalizerFixer.Repositories.IO;
 
 /// <summary>
 ///     Stream access to text files that located in the application's directory

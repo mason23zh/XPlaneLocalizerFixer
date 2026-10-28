@@ -2,7 +2,9 @@
 using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Services;
+using XPlaneLocalizerFixer.Services.Interfaces;
 
 namespace XPlaneLocalizerFixer.Tests.Services;
 
@@ -25,11 +27,11 @@ public class LocalizerCorrectionProcessorTest
         var corrector = new Mock<ILocalizerCorrector>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns([]);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         navAidMatcher
@@ -49,7 +51,10 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process(
+            "apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -86,11 +91,11 @@ public class LocalizerCorrectionProcessorTest
         var corrector = new Mock<ILocalizerCorrector>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns([]);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         var processor = new LocalizerCorrectionProcessor(
@@ -101,7 +106,9 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process("apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -151,11 +158,11 @@ public class LocalizerCorrectionProcessorTest
         var corrector = new Mock<ILocalizerCorrector>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns([]);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         navAidMatcher
@@ -181,7 +188,9 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process("apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -230,11 +239,11 @@ public class LocalizerCorrectionProcessorTest
 
         // Repositories provide the source data.
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns([]);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         navAidMatcher
@@ -286,7 +295,9 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process("apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         Assert.Empty(results);
@@ -348,11 +359,11 @@ public class LocalizerCorrectionProcessorTest
         var corrector = new Mock<ILocalizerCorrector>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns(airports);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         var expectedNavAidMatch = new LocalizerNavAidMatch
@@ -384,7 +395,9 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process("apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
@@ -460,11 +473,11 @@ public class LocalizerCorrectionProcessorTest
         var corrector = new Mock<ILocalizerCorrector>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns(airports);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         // Simulate an ambiguous association for RWY 15.
@@ -501,7 +514,9 @@ public class LocalizerCorrectionProcessorTest
             corrector.Object);
 
         // Act
-        var results = processor.Process();
+        var results = processor.Process("apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
@@ -524,5 +539,70 @@ public class LocalizerCorrectionProcessorTest
             service => service.Correct(
                 It.IsAny<LocalizerRunwayMatch>()),
             Times.Once);
+    }
+
+
+    [Fact]
+    public void Process_WhenAirportIsExcluded_DoesNotCorrectLocalizer()
+    {
+        // Arrange
+        const string locLine =
+            "4 -22.830111111 -43.236972222 17 11050 18 53765.679 IJB SBGL SB 15 ILS-cat-I";
+
+        var navData = new EarthNavDatParser().Parse([locLine]);
+        var localizer = Assert.Single(navData.Localizers);
+
+        var airportRepository = new Mock<IAirportRepository>();
+        var navDataRepository = new Mock<INavDataRepository>();
+        var navAidMatcher = new Mock<ILocalizerNavAidMatcher>();
+        var runwayMatcher = new Mock<ILocalizerRunwayMatcher>();
+        var corrector = new Mock<ILocalizerCorrector>();
+
+        airportRepository
+            .Setup(repository => repository.GetAirports("apt.dat"))
+            .Returns([]);
+
+        navDataRepository
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
+            .Returns(navData);
+
+        var processor = new LocalizerCorrectionProcessor(
+            airportRepository.Object,
+            navDataRepository.Object,
+            navAidMatcher.Object,
+            runwayMatcher.Object,
+            corrector.Object);
+
+        IReadOnlySet<string> excludedAirports =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "SBGL"
+            };
+
+        // Act
+        var results = processor.Process(
+            "apt.dat",
+            "earth_nav.dat",
+            excludedAirports);
+
+        // Assert
+        Assert.Empty(results);
+
+        navAidMatcher.Verify(
+            matcher => matcher.Match(
+                It.IsAny<Localizer>(),
+                It.IsAny<NavData>()),
+            Times.Never);
+
+        runwayMatcher.Verify(
+            matcher => matcher.Match(
+                It.IsAny<Localizer>(),
+                It.IsAny<IEnumerable<Airport>>()),
+            Times.Never);
+
+        corrector.Verify(
+            service => service.Correct(
+                It.IsAny<LocalizerRunwayMatch>()),
+            Times.Never);
     }
 }
