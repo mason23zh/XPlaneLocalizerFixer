@@ -1,4 +1,7 @@
 ﻿using XPlaneLocalizerFixer.Models;
+using XPlaneLocalizerFixer.Parsers;
+using XPlaneLocalizerFixer.Repositories;
+using XPlaneLocalizerFixer.Repositories.IO;
 
 namespace XPlaneLocalizerFixer.Services;
 
@@ -7,34 +10,69 @@ namespace XPlaneLocalizerFixer.Services;
 /// </summary>
 public sealed class LocalizerFixerWorkflow : ILocalizerFixerWorkflow
 {
+    private readonly ICustomAirportRepository _customAirportRepository;
     private readonly ILocalizerCorrectionProcessor _processor;
+    private readonly IExcludedAirportReportWriter _reportWriter;
+    private readonly ISceneryPacksIniParser _sceneryParser;
     private readonly ICorrectedNavDatWriter _writer;
 
     public LocalizerFixerWorkflow(
         ILocalizerCorrectionProcessor processor,
-        ICorrectedNavDatWriter writer)
+        ICorrectedNavDatWriter writer,
+        ISceneryPacksIniParser sceneryParser,
+        ICustomAirportRepository customAirportRepository,
+        IExcludedAirportReportWriter reportWriter)
     {
         ArgumentNullException.ThrowIfNull(processor);
         ArgumentNullException.ThrowIfNull(writer);
+        ArgumentNullException.ThrowIfNull(sceneryParser);
+        ArgumentNullException.ThrowIfNull(customAirportRepository);
+        ArgumentNullException.ThrowIfNull(reportWriter);
 
         _processor = processor;
         _writer = writer;
+        _sceneryParser = sceneryParser;
+        _customAirportRepository = customAirportRepository;
+        _reportWriter = reportWriter;
     }
 
-    public LocalizerFixerWorkflowResult Execute(string outputPath)
+    public LocalizerFixerWorkflowResult Execute(string xplaneRootPath, string outputPath, string reportPath)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(xplaneRootPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reportPath);
 
-        var corrections = _processor.Process();
+        var sceneryIniPath = Path.Combine(
+            xplaneRootPath,
+            "Custom Scenery",
+            "scenery_packs.ini");
 
-        if (corrections.Count == 0)
-            return new LocalizerFixerWorkflowResult(0, null);
+        // custom scenery detection
+        var sceneryPacks = _sceneryParser.Parse(sceneryIniPath);
 
-        var directory = Path.GetDirectoryName(
+        var excludedAirports = _customAirportRepository
+            .GetExcludedAirportIdentifiers(xplaneRootPath, sceneryPacks);
+
+        var outputDirectory = Path.GetDirectoryName(
             Path.GetFullPath(outputPath));
 
-        if (directory is not null)
-            Directory.CreateDirectory(directory);
+        if (outputDirectory is null)
+            throw new InvalidOperationException("Unable to determine the output directory.");
+
+        Directory.CreateDirectory(outputDirectory);
+
+        _reportWriter.Write(reportPath, excludedAirports);
+
+        var corrections = _processor.Process(excludedAirports);
+
+        if (corrections.Count == 0)
+        {
+            // remove stale data
+            if (File.Exists(outputPath))
+                File.Delete(outputPath);
+
+            return new LocalizerFixerWorkflowResult(0, null);
+        }
 
         _writer.Write(outputPath, corrections);
 
