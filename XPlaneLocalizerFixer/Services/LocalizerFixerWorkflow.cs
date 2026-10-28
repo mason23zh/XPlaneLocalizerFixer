@@ -63,7 +63,32 @@ public sealed class LocalizerFixerWorkflow : ILocalizerFixerWorkflow
 
         _reportWriter.Write(reportPath, excludedAirports);
 
-        var corrections = _processor.Process(excludedAirports);
+        // Global Airports ruwnay data
+        var aptDatPath = Path.Combine(
+            xplaneRootPath,
+            "Global Scenery",
+            "Global Airports",
+            "Earth nav data",
+            "apt.dat");
+
+        // custom nav data like Navigraph
+        var customNavPath = Path.Combine(
+            xplaneRootPath,
+            "Custom Data",
+            "earth_nav.dat");
+
+        // default nav data shipped with Xplane
+        var defaultNavPath = Path.Combine(
+            xplaneRootPath,
+            "Resources",
+            "default data",
+            "earth_nav.dat");
+
+        // if user has custom nav data like navigraph, use custom data
+        var earthNavDatPath = File.Exists(customNavPath) ? customNavPath : defaultNavPath;
+
+        var corrections = _processor
+            .Process(aptDatPath, earthNavDatPath, excludedAirports);
 
         if (corrections.Count == 0)
         {
