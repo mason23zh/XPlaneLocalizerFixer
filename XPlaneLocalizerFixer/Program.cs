@@ -3,9 +3,13 @@ using Microsoft.Extensions.Hosting;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.ConsoleUI;
 using XPlaneLocalizerFixer.Parsers;
+using XPlaneLocalizerFixer.Parsers.Interfaces;
 using XPlaneLocalizerFixer.Repositories;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Repositories.IO;
+using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 using XPlaneLocalizerFixer.Services;
+using XPlaneLocalizerFixer.Services.Interfaces;
 
 var builder = Host.CreateApplicationBuilder(args);
 

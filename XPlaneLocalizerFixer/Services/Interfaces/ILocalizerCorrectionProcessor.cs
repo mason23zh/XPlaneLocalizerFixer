@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Services;
+namespace XPlaneLocalizerFixer.Services.Interfaces;
 
 /// <summary>
 ///     Defines a service that processes ILS localizers and collect successful

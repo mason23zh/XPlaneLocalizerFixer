@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Parsers;
+namespace XPlaneLocalizerFixer.Parsers.Interfaces;
 
 /// <summary>
 ///     Defines a parser for XPlane scenery pack files

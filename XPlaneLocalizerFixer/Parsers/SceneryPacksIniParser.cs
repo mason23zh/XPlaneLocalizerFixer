@@ -1,5 +1,7 @@
 ﻿using XPlaneLocalizerFixer.Models;
+using XPlaneLocalizerFixer.Parsers.Interfaces;
 using XPlaneLocalizerFixer.Repositories.IO;
+using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 namespace XPlaneLocalizerFixer.Parsers;
 

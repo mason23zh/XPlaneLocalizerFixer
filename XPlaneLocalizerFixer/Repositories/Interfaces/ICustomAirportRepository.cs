@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Repositories;
+namespace XPlaneLocalizerFixer.Repositories.Interfaces;
 
 /// <summary>
 ///     Find airports in custom scenery package.

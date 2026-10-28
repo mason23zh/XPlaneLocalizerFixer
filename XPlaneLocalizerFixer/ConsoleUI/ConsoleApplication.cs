@@ -3,6 +3,7 @@ using Spectre.Console;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Services;
+using XPlaneLocalizerFixer.Services.Interfaces;
 
 namespace XPlaneLocalizerFixer.ConsoleUI;
 

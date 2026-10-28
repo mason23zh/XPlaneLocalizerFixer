@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Repositories;
+namespace XPlaneLocalizerFixer.Repositories.Interfaces;
 
 /// <summary>
 ///     Defines operations for retrieving navaid data from Xplane earth_nav.dat file

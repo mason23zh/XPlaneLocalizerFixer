@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Repositories;
+namespace XPlaneLocalizerFixer.Repositories.Interfaces;
 
 /// <summary>
 ///     Defines operations for retrieving airport and runway data

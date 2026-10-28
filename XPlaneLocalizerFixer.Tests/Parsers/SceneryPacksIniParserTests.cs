@@ -1,6 +1,7 @@
 ﻿using Moq;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories.IO;
+using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 namespace XPlaneLocalizerFixer.Tests.Parsers;
 

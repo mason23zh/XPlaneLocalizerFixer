@@ -3,6 +3,7 @@ using Moq;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Repositories;
+using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Services;
 
 namespace XPlaneLocalizerFixer.Tests.Services;

@@ -1,6 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
 
-namespace XPlaneLocalizerFixer.Services;
+namespace XPlaneLocalizerFixer.Services.Interfaces;
 
 /// <summary>
 ///     Execute the localizer correction processing and nav data generation.

@@ -1,4 +1,4 @@
-﻿namespace XPlaneLocalizerFixer.Services;
+﻿namespace XPlaneLocalizerFixer.Services.Interfaces;
 
 /// <summary>
 ///     Provide a native folder selection dialog for selecting XPlane root folder

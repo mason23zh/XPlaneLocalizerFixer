@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 namespace XPlaneLocalizerFixer.Repositories.IO;
 

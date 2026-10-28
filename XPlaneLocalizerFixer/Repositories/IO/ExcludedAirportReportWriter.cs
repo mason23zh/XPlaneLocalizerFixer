@@ -1,4 +1,6 @@
-﻿namespace XPlaneLocalizerFixer.Repositories.IO;
+﻿using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
+
+namespace XPlaneLocalizerFixer.Repositories.IO;
 
 public class ExcludedAirportReportWriter : IExcludedAirportReportWriter
 {

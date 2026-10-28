@@ -1,4 +1,6 @@
-﻿namespace XPlaneLocalizerFixer.Services;
+﻿using XPlaneLocalizerFixer.Services.Interfaces;
+
+namespace XPlaneLocalizerFixer.Services;
 
 public sealed class XPlaneInstallationValidator : IXPlaneInstallationValidator
 {

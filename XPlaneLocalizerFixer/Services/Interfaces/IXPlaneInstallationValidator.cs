@@ -1,4 +1,4 @@
-﻿namespace XPlaneLocalizerFixer.Services;
+﻿namespace XPlaneLocalizerFixer.Services.Interfaces;
 
 /// <summary>
 ///     Validates X-Plane installation directories.

@@ -1,4 +1,4 @@
-﻿namespace XPlaneLocalizerFixer.Repositories.IO;
+﻿namespace XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 /// <summary>
 ///     Defines a writer to create a report to display list of airports that been excluded from the
