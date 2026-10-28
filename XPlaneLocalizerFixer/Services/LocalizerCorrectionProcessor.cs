@@ -27,11 +27,16 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
     }
 
     public IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> Process(
+        string aptDatPath,
+        string earthNavDatPath,
         IReadOnlySet<string> excludedAirportIdentifiers
     )
     {
-        var airports = _airportRepository.GetAirports();
-        var navData = _navDataRepository.GetNavData();
+        ArgumentException.ThrowIfNullOrWhiteSpace(aptDatPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(earthNavDatPath);
+
+        var airports = _airportRepository.GetAirports(aptDatPath);
+        var navData = _navDataRepository.GetNavData(earthNavDatPath);
 
         var corrections = new List<(
             LocalizerCorrectionResult Correction,

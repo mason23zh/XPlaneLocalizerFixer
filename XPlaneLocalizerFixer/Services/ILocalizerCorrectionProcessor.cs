@@ -11,6 +11,12 @@ public interface ILocalizerCorrectionProcessor
     /// <summary>
     ///     Process ILS Localizer that have an associated glideslope
     /// </summary>
+    /// <param name="aptDatPath">
+    ///     Full path to Xplane apt.dat file
+    /// </param>
+    /// <param name="earthNavDatPath">
+    ///     Full path to Xplane earth_nav.dat file
+    /// </param>
     /// <param name="excludedAirportIdentifiers">
     ///     Airport identifiers that must not receive localizer correction
     /// </param>
@@ -20,6 +26,8 @@ public interface ILocalizerCorrectionProcessor
     IReadOnlyList<(
         LocalizerCorrectionResult Correction,
         LocalizerNavAidMatch NavAids)> Process(
+        string aptDatPath,
+        string earthNavDatPath,
         IReadOnlySet<string> excludedAirportIdentifiers
     );
 }
