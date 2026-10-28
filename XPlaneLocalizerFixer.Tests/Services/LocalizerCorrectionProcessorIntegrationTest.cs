@@ -48,11 +48,11 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
         var navDataRepository = new Mock<INavDataRepository>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns(airports);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         var processor = new LocalizerCorrectionProcessor(
@@ -69,7 +69,10 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             ));
 
         // Act
-        var results = processor.Process(new HashSet<string>());
+        var results = processor.Process(
+            "apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         // Assert
         var result = Assert.Single(results);
@@ -166,11 +169,11 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
         var navDataRepository = new Mock<INavDataRepository>();
 
         airportRepository
-            .Setup(repository => repository.GetAirports())
+            .Setup(repository => repository.GetAirports("apt.dat"))
             .Returns(airports);
 
         navDataRepository
-            .Setup(repository => repository.GetNavData())
+            .Setup(repository => repository.GetNavData("earth_nav.dat"))
             .Returns(navData);
 
         var processor = new LocalizerCorrectionProcessor(
@@ -180,7 +183,10 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             runwayMatcher,
             corrector);
 
-        var results = processor.Process(new HashSet<string>());
+        var results = processor.Process(
+            "apt.dat",
+            "earth_nav.dat",
+            new HashSet<string>());
 
         Assert.Empty(results);
 
