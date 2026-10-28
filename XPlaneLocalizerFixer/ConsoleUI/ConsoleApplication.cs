@@ -96,6 +96,13 @@ public sealed class ConsoleApplication
             outputDirectory,
             _fileOptions.OutputFileName);
 
+        var reportPath = Path.Combine(
+            outputDirectory,
+            _fileOptions.ExcludedAirportsFileName);
+
+        //TODO: Temporarily until we implement user selection
+        var xplaneRootPath = @"F:\SteamLibrary\steamapps\common\X-Plane 12";
+
         LocalizerFixerWorkflowResult? result = null;
 
         AnsiConsole.Status()
@@ -103,7 +110,7 @@ public sealed class ConsoleApplication
             .SpinnerStyle(Style.Parse("cyan"))
             .Start(
                 "Processing localizer corrections...",
-                _ => { result = _workflow.Execute(outputPath); });
+                _ => { result = _workflow.Execute(xplaneRootPath, outputPath, reportPath); });
 
         if (result is null)
             throw new InvalidOperationException(
