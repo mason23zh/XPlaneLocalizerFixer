@@ -525,4 +525,67 @@ public class LocalizerCorrectionProcessorTest
                 It.IsAny<LocalizerRunwayMatch>()),
             Times.Once);
     }
+    
+    
+    [Fact]
+    public void Process_WhenAirportIsExcluded_DoesNotCorrectLocalizer()
+    {
+        // Arrange
+        const string locLine =
+            "4 -22.830111111 -43.236972222 17 11050 18 53765.679 IJB SBGL SB 15 ILS-cat-I";
+
+        var navData = new EarthNavDatParser().Parse([locLine]);
+        var localizer = Assert.Single(navData.Localizers);
+
+        var airportRepository = new Mock<IAirportRepository>();
+        var navDataRepository = new Mock<INavDataRepository>();
+        var navAidMatcher = new Mock<ILocalizerNavAidMatcher>();
+        var runwayMatcher = new Mock<ILocalizerRunwayMatcher>();
+        var corrector = new Mock<ILocalizerCorrector>();
+
+        airportRepository
+            .Setup(repository => repository.GetAirports())
+            .Returns([]);
+
+        navDataRepository
+            .Setup(repository => repository.GetNavData())
+            .Returns(navData);
+
+        var processor = new LocalizerCorrectionProcessor(
+            airportRepository.Object,
+            navDataRepository.Object,
+            navAidMatcher.Object,
+            runwayMatcher.Object,
+            corrector.Object);
+
+        IReadOnlySet<string> excludedAirports =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "SBGL"
+            };
+
+        // Act
+        var results = processor.Process(excludedAirports);
+
+        // Assert
+        Assert.Empty(results);
+
+        navAidMatcher.Verify(
+            matcher => matcher.Match(
+                It.IsAny<Localizer>(),
+                It.IsAny<NavData>()),
+            Times.Never);
+
+        runwayMatcher.Verify(
+            matcher => matcher.Match(
+                It.IsAny<Localizer>(),
+                It.IsAny<IEnumerable<Airport>>()),
+            Times.Never);
+
+        corrector.Verify(
+            service => service.Correct(
+                It.IsAny<LocalizerRunwayMatch>()),
+            Times.Never);
+    }
+
 }
