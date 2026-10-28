@@ -12,14 +12,17 @@ var builder = Host.CreateApplicationBuilder(args);
 //File access
 builder.Services.AddSingleton<IFileReader, FileReader>();
 builder.Services.AddSingleton<IFileWriter, FileWriter>();
+builder.Services.AddSingleton<IExcludedAirportReportWriter, ExcludedAirportReportWriter>();
 
 //Parsers
 builder.Services.AddSingleton<IAptDatParser, AptDatParser>();
 builder.Services.AddSingleton<IEarthNavDatParser, EarthNavDatParser>();
+builder.Services.AddSingleton<ISceneryPacksIniParser, SceneryPacksIniParser>();
 
 // Repositories
 builder.Services.AddTransient<IAirportRepository, AirportRepository>();
 builder.Services.AddTransient<INavDataRepository, NavDataRepository>();
+builder.Services.AddTransient<ICustomAirportRepository, CustomAirportRepository>();
 
 //services
 builder.Services.AddSingleton<ILocalizerFixerWorkflow, LocalizerFixerWorkflow>();
@@ -28,6 +31,7 @@ builder.Services.AddSingleton<ILocalizerNavAidMatcher, LocalizerNavAidMatcher>()
 builder.Services.AddSingleton<ILocalizerCorrector, LocalizerCorrector>();
 builder.Services.AddSingleton<ILocalizerCorrectionProcessor, LocalizerCorrectionProcessor>();
 builder.Services.AddSingleton<ICorrectedNavDatWriter, CorrectedNavDatWriter>();
+builder.Services.AddSingleton<IXPlaneInstallationValidator, XPlaneInstallationValidator>();
 
 // Console UI
 builder.Services.AddSingleton<ConsoleApplication>();
