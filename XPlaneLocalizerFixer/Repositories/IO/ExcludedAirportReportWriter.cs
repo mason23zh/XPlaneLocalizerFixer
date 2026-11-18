@@ -60,6 +60,10 @@ public class ExcludedAirportReportWriter : IExcludedAirportReportWriter
             lines.Add(
                 $"  Reason: {rejection.SkipReason ?? rejection.FailureReason?.ToString() ?? "Unknown"}");
 
+            if (rejection.HeadingDeviationDegrees is double headingDeviation)
+                lines.Add(
+                    $"  Heading deviation: {headingDeviation.ToString("F3", CultureInfo.InvariantCulture)}°");
+
             if (rejection.LateralDisplacementMeters is double displacement)
                 lines.Add(
                     $"  Lateral displacement: {displacement.ToString("F2", CultureInfo.InvariantCulture)} m");

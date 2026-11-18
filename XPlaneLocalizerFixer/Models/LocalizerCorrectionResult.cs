@@ -42,4 +42,9 @@ public sealed record LocalizerCorrectionResult
     public string? SkipReason { get; init; }
 
     public LocalizerCorrectionFailureReason? FailureReason { get; init; }
+
+    /// <summary>
+    ///     Gets the absolute difference between the localizer course and runway true heading when available
+    /// </summary>
+    public double? HeadingDeviationDegrees { get; init; }
 }

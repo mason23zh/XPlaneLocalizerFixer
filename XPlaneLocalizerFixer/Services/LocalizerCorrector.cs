@@ -73,7 +73,9 @@ public class LocalizerCorrector : ILocalizerCorrector
             return Skipped(
                 localizer,
                 LocalizerCorrectionFailureReason.HeadingDeviationExceeded,
-                $"Localizer heading differs from runway heading by at least {_options.MaxHeadingDeviationDegrees} degree.");
+                $"Localizer heading differs from runway heading by at least {_options.MaxHeadingDeviationDegrees} degree.",
+                headingDeviation: headingDifference
+            );
 
         // Find the closest position on the extended runway centerline.
         var projection = Wgs84Geodesic.ProjectOntoRunway(
@@ -105,7 +107,8 @@ public class LocalizerCorrector : ILocalizerCorrector
                 localizer,
                 LocalizerCorrectionFailureReason.LateralDeviationExceeded,
                 $"Lateral displacement exceeds {_options.MaxLateralDeviationMeters} metres.",
-                lateralDisplacement
+                lateralDisplacement,
+                headingDifference
             );
 
         // Preserve the integer magnetic-course portion of X-Plane's encoding.
@@ -130,7 +133,8 @@ public class LocalizerCorrector : ILocalizerCorrector
         Localizer localizer,
         LocalizerCorrectionFailureReason failureReason,
         string reason,
-        double? displacement = null)
+        double? displacement = null,
+        double? headingDeviation = null)
     {
         return new LocalizerCorrectionResult
         {
@@ -138,7 +142,8 @@ public class LocalizerCorrector : ILocalizerCorrector
             IsCorrected = false,
             FailureReason = failureReason,
             SkipReason = reason,
-            LateralDisplacementMeters = displacement
+            LateralDisplacementMeters = displacement,
+            HeadingDeviationDegrees = headingDeviation
         };
     }
 
