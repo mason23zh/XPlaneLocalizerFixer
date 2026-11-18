@@ -258,7 +258,7 @@ public sealed class ConsoleApplication
     }
 
     /// <summary>
-    ///     Prompt the user to select and validate an XPlnae 12 installation directory
+    ///     Prompt the user to select and validate an Xplane 12 installation directory
     /// </summary>
     /// <returns></returns>
     private bool SelectXPlaneInstallation()
