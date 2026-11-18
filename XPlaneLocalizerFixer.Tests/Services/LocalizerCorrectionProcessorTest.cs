@@ -134,7 +134,7 @@ public class LocalizerCorrectionProcessorTest
     }
 
     [Fact]
-    public void Process_WhenRunwayIsMissing_DoesNotCorrectLocalizer()
+    public void Process_WhenRunwayIsMissing_AddResultToRejection()
     {
         // Arrange
         const string locLine =
@@ -195,7 +195,19 @@ public class LocalizerCorrectionProcessorTest
 
         // Assert
         Assert.Empty(results.Corrections);
-        Assert.Empty(results.Rejections);
+
+        var rejection = Assert.Single(results.Rejections);
+
+        Assert.False(rejection.IsCorrected);
+        Assert.Same(localizer, rejection.Localizer);
+
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.RunwayNotFound,
+            rejection.FailureReason);
+
+        Assert.Equal(
+            "No matching runway found in apt.dat.",
+            rejection.SkipReason);
 
         navAidMatcher.Verify(
             matcher => matcher.Match(localizer, navData),
@@ -317,7 +329,12 @@ public class LocalizerCorrectionProcessorTest
             LocalizerCorrectionFailureReason.LateralDeviationExceeded,
             rejection.FailureReason);
 
+        Assert.Equal(
+            "Lateral displacement exceeds 50 meters.",
+            rejection.SkipReason);
+
         Assert.Equal(65.0, rejection.LateralDisplacementMeters);
+
         corrector.Verify(
             service => service.Correct(runwayMatch),
             Times.Once);

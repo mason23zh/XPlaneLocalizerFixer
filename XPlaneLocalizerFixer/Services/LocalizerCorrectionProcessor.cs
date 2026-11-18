@@ -81,7 +81,7 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
                     Localizer = loc,
                     IsCorrected = false,
                     FailureReason = LocalizerCorrectionFailureReason.RunwayNotFound,
-                    SkipReason = "No matching runway found in apt.dat"
+                    SkipReason = "No matching runway found in apt.dat."
                 });
                 continue;
             }
