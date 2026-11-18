@@ -23,7 +23,7 @@ Associated glideslope (GS) and DME records are preserved without modification.
 
 Launch `XPlaneLocalizerFixer`.
 
-From the main menu, select **Select X-Plane 12 installation**.
+From the main menu, select **Select X-Plane 12 installation root folder**.
 
 A native folder selection dialog will open. Select the root directory of your X-Plane 12 installation.
 
@@ -118,7 +118,7 @@ To reduce the risk of modifying intentionally offset approaches or making excess
 | Maximum lateral displacement | 50 metres |
 | Maximum heading difference | 1 degree |
 
-Localizers outside these limits are skipped. For example `ZTYL ILS 10`
+Localizers outside these limits are skipped. For example `ZYTL ILS 10`
 
 These checks are intended to reduce risk, but they do not guarantee that every generated correction is appropriate. Review generated data before installing it.
 
