@@ -1,4 +1,6 @@
-﻿namespace XPlaneLocalizerFixer.Repositories.IO.Interfaces;
+﻿using XPlaneLocalizerFixer.Models;
+
+namespace XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 
 /// <summary>
 ///     Defines a writer to create a report to display list of airports that been excluded from the
@@ -15,7 +17,11 @@ public interface IExcludedAirportReportWriter
     /// <param name="airportIdentifiers">
     ///     The airport identifiers excluded from correction
     /// </param>
+    /// <param name="rejections">
+    ///     Localizer correction results containing rejection reasons.
+    /// </param>
     void Write(
         string outputPath,
-        IReadOnlySet<string> airportIdentifiers);
+        IReadOnlySet<string> airportIdentifiers,
+        IReadOnlyList<LocalizerCorrectionResult> rejections);
 }
