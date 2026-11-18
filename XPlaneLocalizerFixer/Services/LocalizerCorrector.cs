@@ -125,7 +125,8 @@ public class LocalizerCorrector : ILocalizerCorrector
             CorrectedLatitude = correctedPosition.Latitude,
             CorrectedLongitude = correctedPosition.Longitude,
             CorrectedEncodedCourse = correctedEncodedCourse,
-            LateralDisplacementMeters = lateralDisplacement
+            LateralDisplacementMeters = lateralDisplacement,
+            HeadingDeviationDegrees = headingDifference
         };
     }
 
