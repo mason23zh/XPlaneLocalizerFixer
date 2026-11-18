@@ -21,11 +21,10 @@ public interface ILocalizerCorrectionProcessor
     ///     Airport identifiers that must not receive localizer correction
     /// </param>
     /// <returns>
-    ///     Successful localizer corrections paired with their original glideslope and DME records
+    ///     Successful localizer corrections paired with their original glideslope and DME records, and
+    ///     rejected corrections with their failure reasons.
     /// </returns>
-    IReadOnlyList<(
-        LocalizerCorrectionResult Correction,
-        LocalizerNavAidMatch NavAids)> Process(
+    LocalizerProcessingResult Process(
         string aptDatPath,
         string earthNavDatPath,
         IReadOnlySet<string> excludedAirportIdentifiers
