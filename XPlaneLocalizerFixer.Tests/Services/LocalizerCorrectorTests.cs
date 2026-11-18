@@ -68,6 +68,12 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.True(result.IsCorrected, result.SkipReason);
+        Assert.Null(result.FailureReason);
+        Assert.Null(result.SkipReason);
+
+        Assert.NotNull(result.HeadingDeviationDegrees);
+        Assert.Equal(0.0, result.HeadingDeviationDegrees.Value, 6);
+
         Assert.NotNull(result.LateralDisplacementMeters);
         Assert.InRange(
             result.LateralDisplacementMeters.Value,
@@ -153,6 +159,14 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.False(result.IsCorrected);
+
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.LateralDeviationExceeded,
+            result.FailureReason);
+
+        Assert.NotNull(result.HeadingDeviationDegrees);
+        Assert.Equal(0.0, result.HeadingDeviationDegrees.Value, 6);
+
         Assert.NotNull(result.SkipReason);
         Assert.Contains("50", result.SkipReason);
         Assert.True(result.LateralDisplacementMeters!.Value > 50.0);
@@ -208,6 +222,14 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.False(result.IsCorrected);
+
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.HeadingDeviationExceeded,
+            result.FailureReason);
+
+        Assert.NotNull(result.HeadingDeviationDegrees);
+        Assert.Equal(3.0, result.HeadingDeviationDegrees.Value, 6);
+
         Assert.NotNull(result.SkipReason);
         Assert.Contains("heading", result.SkipReason, StringComparison.OrdinalIgnoreCase);
 
@@ -654,6 +676,14 @@ public class LocalizerCorrectorTests
         var result = corrector.Correct(match);
 
         Assert.False(result.IsCorrected);
+
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.InvalidLocalizerCoordinates,
+            result.FailureReason);
+
+        Assert.Null(result.HeadingDeviationDegrees);
+        Assert.Null(result.LateralDisplacementMeters);
+
         Assert.Contains(
             "Invalid localizer coordinates",
             result.SkipReason);
