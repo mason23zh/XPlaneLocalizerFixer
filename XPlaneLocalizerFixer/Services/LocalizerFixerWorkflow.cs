@@ -1,9 +1,6 @@
 ﻿using XPlaneLocalizerFixer.Models;
-using XPlaneLocalizerFixer.Parsers;
 using XPlaneLocalizerFixer.Parsers.Interfaces;
-using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.Interfaces;
-using XPlaneLocalizerFixer.Repositories.IO;
 using XPlaneLocalizerFixer.Repositories.IO.Interfaces;
 using XPlaneLocalizerFixer.Services.Interfaces;
 
@@ -65,7 +62,7 @@ public sealed class LocalizerFixerWorkflow : ILocalizerFixerWorkflow
 
         Directory.CreateDirectory(outputDirectory);
 
-        _reportWriter.Write(reportPath, excludedAirports);
+        // _reportWriter.Write(reportPath, excludedAirports);
 
         // Global Airports ruwnay data
         var aptDatPath = Path.Combine(
@@ -91,8 +88,10 @@ public sealed class LocalizerFixerWorkflow : ILocalizerFixerWorkflow
         // if user has custom nav data like navigraph, use custom data
         var earthNavDatPath = File.Exists(customNavPath) ? customNavPath : defaultNavPath;
 
-        var corrections = _processor
+        var processingResult = _processor
             .Process(aptDatPath, earthNavDatPath, excludedAirports);
+
+        var corrections = processingResult.Corrections;
 
         if (corrections.Count == 0)
         {
@@ -104,6 +103,11 @@ public sealed class LocalizerFixerWorkflow : ILocalizerFixerWorkflow
         }
 
         _writer.Write(outputPath, corrections);
+
+        _reportWriter.Write(
+            reportPath,
+            excludedAirports,
+            processingResult.Rejections);
 
         return new LocalizerFixerWorkflowResult
         (
