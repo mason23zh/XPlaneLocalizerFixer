@@ -43,8 +43,9 @@ The application will:
 2. Read navigation data from `Custom Data/earth_nav.dat`, falling back to `Resources/default data/earth_nav.dat` if necessary.
 3. Scan enabled custom scenery packages listed in `Custom Scenery/scenery_packs.ini`.
 4. Identify airports with custom runway definitions and exclude them from correction.
-5. Calculate corrected localizer positions and courses for eligible airports.
-6. Generate the output files.
+5. Calculate corrected localizer positions and courses for eligible ILS approaches.
+6. Record localizers that could not be corrected, including their rejection reasons.
+7. Generate the corrected navigation data and exclusion report.
 
 ### 3. Review the generated files
 
@@ -62,7 +63,16 @@ Contains corrected localizer records, along with their associated original glide
 
 **`excluded_airports.txt`**
 
-Lists airport identifiers excluded from correction because enabled custom scenery contains runway definitions for those airports.
+Contains a detailed report of airports and individual ILS localizers excluded from correction.
+
+The report includes two categories:
+
+- **Custom scenery exclusions:** Airports excluded entirely because enabled custom scenery packages contain their own runway definitions.
+- **Localizer correction rejections:** Individual ILS localizers that could not be corrected because of runway matching issues, safety limits, or invalid geometry.
+
+For each rejected localizer, the report includes its airport ICAO, runway identifier, localizer identifier, and rejection reason. Heading deviation and lateral displacement measurements are included when available.
+
+Localizers without an associated glideslope are outside the scope of the correction process and are not included in the rejection report.
 
 The exclusion report is generated even when no localizer corrections are produced.
 
@@ -97,6 +107,67 @@ Disabled scenery packages and packages without qualifying airport definitions ar
 
 The excluded airport identifiers are written to `output/excluded_airports.txt` for inspection.
 
+
+
+
+## Localizer Correction Rejections
+
+Localizer Fixer records eligible ILS localizers that could not be corrected in `output/excluded_airports.txt`.
+
+A localizer may be rejected for several reasons:
+
+| Reason | Description |
+|---|---|
+| Runway not found | The runway identifier in `earth_nav.dat` does not match an available runway in `apt.dat`. |
+| Heading deviation exceeded | The localizer course differs from the runway's true heading by at least the configured threshold (default: 1°). |
+| Lateral displacement exceeded | The required lateral correction exceeds the configured maximum (default: 50 metres). |
+| Invalid runway or localizer data | Invalid coordinates, course information, or runway geometry prevent correction. |
+| Geodesic projection failure | A valid corrected position could not be calculated. |
+
+### Runway Identifier Mismatches
+
+Runway identifier mismatches may occur when navigation data is newer than the airport runway definitions included with X-Plane.
+
+For example, newer navigation data may identify a runway as `22L`, while the corresponding runway in X-Plane's `apt.dat` is still identified as `22`.
+
+The application does not automatically assume these identifiers refer to the same physical runway. Such localizers are skipped and reported as `RunwayNotFound` to avoid potentially incorrect corrections.
+
+### Example Exclusion Report
+
+```text
+# X-Plane Localizer Fixer
+# Airports and localizers excluded from correction
+
+# Custom scenery exclusions
+# Reason: Enabled custom scenery with runway definitions
+
+KJFK
+VHHX
+
+# Localizer correction rejections
+
+ZYTL RWY 10 (IZF)
+  Reason: HeadinZYTL RWY 10 (IZF)
+  Reason: Localizer heading differs from runway heading by at least 1 degree.
+  Heading deviation: 2.765°g deviation meets or exceeds 1 degrees.
+
+ZPPP RWY 04R (ITH)
+  Reason: No matching runway found in apt.dat.
+
+ZPPP RWY 22L (IPB)
+  Reason: No matching runway found in apt.dat.
+
+# Total custom scenery airports: 2
+# Total rejected localizers: 3
+```
+
+The example is illustrative.
+
+**Important:** A rejected localizer does not necessarily mean that the entire airport is excluded. Other eligible localizers at the same airport may still be successfully corrected.
+
+Rejected localizers are not written to `user_nav_generated.dat`. X-Plane's original navigation records remain available for those approaches.
+
+
 ## Localizer Correction and Safety
 
 Localizer Fixer uses runway coordinates from `apt.dat` to calculate runway centerlines and adjust eligible localizers.
@@ -118,7 +189,13 @@ To reduce the risk of modifying intentionally offset approaches or making excess
 | Maximum lateral displacement | 50 metres |
 | Maximum heading difference | 1 degree |
 
-Localizers outside these limits are skipped. For example `ZYTL ILS 10`
+
+Localizers that exceed these safety limits are skipped and recorded in `excluded_airports.txt`, along with their rejection reasons.
+
+
+For example, intentionally offset ILS approaches such as ZYTL RWY 10 may exceed the heading deviation threshold. The application skips these approaches to preserve their published localizer geometry.
+
+The lateral displacement limit provides an additional safeguard against modifying localizers that are significantly displaced from the runway centerline, even when their encoded course closely matches the runway heading.
 
 These checks are intended to reduce risk, but they do not guarantee that every generated correction is appropriate. Review generated data before installing it.
 
