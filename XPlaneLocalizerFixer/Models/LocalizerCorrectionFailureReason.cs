@@ -13,5 +13,6 @@ public enum LocalizerCorrectionFailureReason
     HeadingDeviationExceeded,
     ProjectionFailed,
     InvalidProjectionResult,
-    LateralDeviationExceeded
+    LateralDeviationExceeded,
+    RunwayNotFound
 }

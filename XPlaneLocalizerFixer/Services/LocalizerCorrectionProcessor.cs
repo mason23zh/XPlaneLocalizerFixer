@@ -75,7 +75,16 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
             var runwayMatch = _runwayMatcher.Match(loc, airports);
 
             if (runwayMatch is null)
+            {
+                rejections.Add(new LocalizerCorrectionResult
+                {
+                    Localizer = loc,
+                    IsCorrected = false,
+                    FailureReason = LocalizerCorrectionFailureReason.RunwayNotFound,
+                    SkipReason = "No matching runway found in apt.dat"
+                });
                 continue;
+            }
 
             var result = _corrector.Correct(runwayMatch);
 
