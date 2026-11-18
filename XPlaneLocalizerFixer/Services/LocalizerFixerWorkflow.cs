@@ -64,7 +64,7 @@ public sealed class LocalizerFixerWorkflow : ILocalizerFixerWorkflow
 
         // _reportWriter.Write(reportPath, excludedAirports);
 
-        // Global Airports ruwnay data
+        // Global Airports runway data
         var aptDatPath = Path.Combine(
             xplaneRootPath,
             "Global Scenery",
