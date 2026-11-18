@@ -40,4 +40,6 @@ public sealed record LocalizerCorrectionResult
     ///     Gets the reason why correction was skipped if available.
     /// </summary>
     public string? SkipReason { get; init; }
+
+    public LocalizerCorrectionFailureReason? FailureReason { get; init; }
 }
