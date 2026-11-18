@@ -73,7 +73,7 @@ public class LocalizerCorrector : ILocalizerCorrector
             return Skipped(
                 localizer,
                 LocalizerCorrectionFailureReason.HeadingDeviationExceeded,
-                "Localizer heading differs from runway heading by at least 1 degree.");
+                $"Localizer heading differs from runway heading by at least {_options.MaxHeadingDeviationDegrees} degree.");
 
         // Find the closest position on the extended runway centerline.
         var projection = Wgs84Geodesic.ProjectOntoRunway(
