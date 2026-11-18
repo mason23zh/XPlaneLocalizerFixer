@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using Moq;
 using XPlaneLocalizerFixer.Configuration;
+using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
-using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Services;
 
@@ -76,7 +76,10 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             new HashSet<string>());
 
         // Assert
-        var result = Assert.Single(results);
+        var result = Assert.Single(results.Corrections);
+
+        Assert.Empty(results.Rejections);
+        Assert.Null(result.Correction.FailureReason);
 
         Assert.True(result.Correction.IsCorrected);
         Assert.Null(result.Correction.SkipReason);
@@ -164,6 +167,9 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
 
         Assert.False(correction.IsCorrected);
         Assert.NotNull(correction.SkipReason);
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.HeadingDeviationExceeded,
+            correction.FailureReason);
 
         // Verify that the complete processor excludes the rejected correction.
         var airportRepository = new Mock<IAirportRepository>();
@@ -189,7 +195,18 @@ public sealed class LocalizerCorrectionProcessorIntegrationTest
             "earth_nav.dat",
             new HashSet<string>());
 
-        Assert.Empty(results);
+        Assert.Empty(results.Corrections);
+
+        var rejection = Assert.Single(results.Rejections);
+
+        Assert.False(rejection.IsCorrected);
+        Assert.Same(localizer, rejection.Localizer);
+
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.HeadingDeviationExceeded,
+            rejection.FailureReason);
+
+        Assert.NotNull(rejection.SkipReason);
 
         // Confirm that the original navigation records remain unchanged.
         Assert.Equal(locLine, localizer.RawLine);

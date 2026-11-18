@@ -1,7 +1,6 @@
 ﻿using Moq;
 using XPlaneLocalizerFixer.Models;
 using XPlaneLocalizerFixer.Parsers;
-using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Services;
 using XPlaneLocalizerFixer.Services.Interfaces;
@@ -57,7 +56,8 @@ public class LocalizerCorrectionProcessorTest
             new HashSet<string>());
 
         // Assert
-        Assert.Empty(results);
+        Assert.Empty(results.Corrections);
+        Assert.Empty(results.Rejections);
 
         navAidMatcher.Verify(
             matcher => matcher.Match(localizer, navData),
@@ -111,7 +111,8 @@ public class LocalizerCorrectionProcessorTest
             new HashSet<string>());
 
         // Assert
-        Assert.Empty(results);
+        Assert.Empty(results.Corrections);
+        Assert.Empty(results.Rejections);
 
         // Standalone localizers must never reach the matching services.
         navAidMatcher.Verify(
@@ -193,7 +194,8 @@ public class LocalizerCorrectionProcessorTest
             new HashSet<string>());
 
         // Assert
-        Assert.Empty(results);
+        Assert.Empty(results.Corrections);
+        Assert.Empty(results.Rejections);
 
         navAidMatcher.Verify(
             matcher => matcher.Match(localizer, navData),
@@ -213,7 +215,7 @@ public class LocalizerCorrectionProcessorTest
     }
 
     [Fact]
-    public void Process_WhenCorrectionIsRejected_DoesNotIncludeResult()
+    public void Process_WhenCorrectionIsRejected_AddsResultToRejections()
     {
         // Arrange
         const string locLine =
@@ -277,16 +279,6 @@ public class LocalizerCorrectionProcessorTest
                 It.IsAny<IEnumerable<Airport>>()))
             .Returns(runwayMatch);
 
-        // Simulate a correction rejected by the existing safety checks.
-        corrector
-            .Setup(service => service.Correct(runwayMatch))
-            .Returns(new LocalizerCorrectionResult
-            {
-                Localizer = localizer,
-                IsCorrected = false,
-                SkipReason = "Lateral displacement exceeds 50 meters."
-            });
-
         var processor = new LocalizerCorrectionProcessor(
             airportRepository.Object,
             navDataRepository.Object,
@@ -294,14 +286,38 @@ public class LocalizerCorrectionProcessorTest
             runwayMatcher.Object,
             corrector.Object);
 
+        var expectedRejection = new LocalizerCorrectionResult
+        {
+            Localizer = localizer,
+            IsCorrected = false,
+            FailureReason = LocalizerCorrectionFailureReason.LateralDeviationExceeded,
+            LateralDisplacementMeters = 65.0,
+            SkipReason = "Lateral displacement exceeds 50 meters."
+        };
+
+        corrector
+            .Setup(service => service.Correct(runwayMatch))
+            .Returns(expectedRejection);
+
         // Act
         var results = processor.Process("apt.dat",
             "earth_nav.dat",
             new HashSet<string>());
 
         // Assert
-        Assert.Empty(results);
+        Assert.Empty(results.Corrections);
 
+        var rejection = Assert.Single(results.Rejections);
+
+        Assert.Same(expectedRejection, rejection);
+        Assert.Same(localizer, rejection.Localizer);
+        Assert.False(rejection.IsCorrected);
+
+        Assert.Equal(
+            LocalizerCorrectionFailureReason.LateralDeviationExceeded,
+            rejection.FailureReason);
+
+        Assert.Equal(65.0, rejection.LateralDisplacementMeters);
         corrector.Verify(
             service => service.Correct(runwayMatch),
             Times.Once);
@@ -400,8 +416,9 @@ public class LocalizerCorrectionProcessorTest
             new HashSet<string>());
 
         // Assert
-        var result = Assert.Single(results);
+        var result = Assert.Single(results.Corrections);
 
+        Assert.Empty(results.Rejections);
         Assert.Same(expectedCorrection, result.Correction);
         Assert.Same(expectedNavAidMatch, result.NavAids);
 
@@ -519,8 +536,10 @@ public class LocalizerCorrectionProcessorTest
             new HashSet<string>());
 
         // Assert
-        var result = Assert.Single(results);
 
+        var result = Assert.Single(results.Corrections);
+
+        Assert.Empty(results.Rejections);
         Assert.Same(expectedCorrection, result.Correction);
         Assert.Same(validMatch, result.NavAids);
         Assert.Same(loc28, result.Correction.Localizer);
@@ -586,7 +605,8 @@ public class LocalizerCorrectionProcessorTest
             excludedAirports);
 
         // Assert
-        Assert.Empty(results);
+        Assert.Empty(results.Corrections);
+        Assert.Empty(results.Rejections);
 
         navAidMatcher.Verify(
             matcher => matcher.Match(
