@@ -2,7 +2,6 @@
 using Spectre.Console;
 using XPlaneLocalizerFixer.Configuration;
 using XPlaneLocalizerFixer.Models;
-using XPlaneLocalizerFixer.Services;
 using XPlaneLocalizerFixer.Services.Interfaces;
 
 namespace XPlaneLocalizerFixer.ConsoleUI;
@@ -55,7 +54,7 @@ public sealed class ConsoleApplication
             if (_xplaneRootPath is not null)
             {
                 AnsiConsole.MarkupLine(
-                    $"[green]X-Plane installation:[/] {Markup.Escape(_xplaneRootPath)}");
+                    $"[green]X-Plane installation root folder:[/] {Markup.Escape(_xplaneRootPath)}");
 
                 AnsiConsole.WriteLine();
             }
@@ -63,24 +62,25 @@ public sealed class ConsoleApplication
             var choices = _xplaneRootPath is null
                 ? new[]
                 {
-                    "Select X-Plane 12 installation",
-                    "View configuration",
-                    "Exit"
+                    ConsoleMenuOption.SelectInstallation,
+                    ConsoleMenuOption.ViewConfiguration,
+                    ConsoleMenuOption.Exit
                 }
                 : new[]
                 {
-                    "Generate corrected nav data",
-                    "View configuration",
-                    "Change X-Plane installation",
-                    "Exit"
+                    ConsoleMenuOption.GenerateNavData,
+                    ConsoleMenuOption.ViewConfiguration,
+                    ConsoleMenuOption.ChangeInstallation,
+                    ConsoleMenuOption.Exit
                 };
 
             var selection = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
+                new SelectionPrompt<ConsoleMenuOption>()
                     .Title("Select an [green]option[/]:")
+                    .UseConverter(GetMenuOptionLabel)
                     .AddChoices(choices));
 
-            if (selection == "Exit")
+            if (selection == ConsoleMenuOption.Exit)
                 return;
 
             AnsiConsole.WriteLine();
@@ -89,16 +89,16 @@ public sealed class ConsoleApplication
             {
                 switch (selection)
                 {
-                    case "Select X-Plane 12 installation":
-                    case "Change X-Plane installation":
+                    case ConsoleMenuOption.SelectInstallation:
+                    case ConsoleMenuOption.ChangeInstallation:
                         SelectXPlaneInstallation();
                         continue;
 
-                    case "Generate corrected nav data":
+                    case ConsoleMenuOption.GenerateNavData:
                         GenerateNavData();
                         break;
 
-                    case "View configuration":
+                    case ConsoleMenuOption.ViewConfiguration:
                         ShowConfiguration();
                         break;
                 }
@@ -290,5 +290,28 @@ public sealed class ConsoleApplication
             if (!AnsiConsole.Confirm("Would you like to try again?"))
                 return false;
         }
+    }
+
+    private static string GetMenuOptionLabel(ConsoleMenuOption option)
+    {
+        return option switch
+        {
+            ConsoleMenuOption.SelectInstallation =>
+                "Select X-Plane 12 installation root folder",
+
+            ConsoleMenuOption.ChangeInstallation =>
+                "Change X-Plane 12 installation root folder",
+
+            ConsoleMenuOption.GenerateNavData =>
+                "Generate corrected nav data",
+
+            ConsoleMenuOption.ViewConfiguration =>
+                "View configuration",
+
+            ConsoleMenuOption.Exit =>
+                "Exit",
+
+            _ => throw new ArgumentOutOfRangeException(nameof(option))
+        };
     }
 }
