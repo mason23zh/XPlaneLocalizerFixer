@@ -6,8 +6,12 @@
 /// </summary>
 public enum LocalizerCorrectionFailureReason
 {
+    InvalidRunwayCoordinates,
+    InvalidLocalizerCoordinates,
+    InvalidLocalizerCourse,
+    InvalidRunwayGeometry,
     HeadingDeviationExceeded,
-    LateralDeviationExceeded,
-    IdenticalRunwayEndpoints,
-    InvalidCoordinates
+    ProjectionFailed,
+    InvalidProjectionResult,
+    LateralDeviationExceeded
 }
