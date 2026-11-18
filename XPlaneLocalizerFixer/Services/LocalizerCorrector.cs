@@ -28,20 +28,36 @@ public class LocalizerCorrector : ILocalizerCorrector
         var nav = localizer.Position;
 
         if (!IsValidCoordinate(start) || !IsValidCoordinate(end))
-            return Skipped(localizer, "Invalid runway coordinates.");
+            return Skipped(
+                localizer,
+                LocalizerCorrectionFailureReason.InvalidRunwayCoordinates,
+                "Invalid runway coordinates."
+            );
 
         if (!IsValidCoordinate(nav))
-            return Skipped(localizer, "Invalid localizer coordinates.");
+            return Skipped(
+                localizer,
+                LocalizerCorrectionFailureReason.InvalidLocalizerCoordinates,
+                "Invalid localizer coordinates."
+            );
 
         if (!double.IsFinite(localizer.EncodedCourse) ||
             localizer.EncodedCourse < 0)
-            return Skipped(localizer, "Invalid localizer course.");
+            return Skipped(
+                localizer,
+                LocalizerCorrectionFailureReason.InvalidLocalizerCourse,
+                "Invalid localizer course."
+            );
 
         // Determine the runway's initial true bearing on the WGS84 ellipsoid.
         var runwayPath = Wgs84Geodesic.Inverse(start, end);
 
         if (runwayPath is null || runwayPath.Value.Distance < 1.0)
-            return Skipped(localizer, "Invalid runway geometry.");
+            return Skipped(
+                localizer,
+                LocalizerCorrectionFailureReason.InvalidRunwayGeometry,
+                "Invalid runway geometry."
+            );
 
         var runwayHeading = runwayPath.Value.Bearing;
 
@@ -56,6 +72,7 @@ public class LocalizerCorrector : ILocalizerCorrector
         if (headingDifference >= _options.MaxHeadingDeviationDegrees)
             return Skipped(
                 localizer,
+                LocalizerCorrectionFailureReason.HeadingDeviationExceeded,
                 "Localizer heading differs from runway heading by at least 1 degree.");
 
         // Find the closest position on the extended runway centerline.
@@ -66,7 +83,11 @@ public class LocalizerCorrector : ILocalizerCorrector
             nav);
 
         if (projection is null)
-            return Skipped(localizer, "Unable to project localizer.");
+            return Skipped(
+                localizer,
+                LocalizerCorrectionFailureReason.ProjectionFailed,
+                "Unable to project localizer."
+            );
 
         var (correctedPosition, lateralDisplacement) = projection.Value;
 
@@ -75,13 +96,17 @@ public class LocalizerCorrector : ILocalizerCorrector
             lateralDisplacement < 0)
             return Skipped(
                 localizer,
-                "Invalid geodesic projection result.");
+                LocalizerCorrectionFailureReason.InvalidProjectionResult,
+                "Invalid geodesic projection result."
+            );
 
         if (lateralDisplacement > _options.MaxLateralDeviationMeters)
             return Skipped(
                 localizer,
+                LocalizerCorrectionFailureReason.LateralDeviationExceeded,
                 $"Lateral displacement exceeds {_options.MaxLateralDeviationMeters} metres.",
-                lateralDisplacement);
+                lateralDisplacement
+            );
 
         // Preserve the integer magnetic-course portion of X-Plane's encoding.
         var magneticPrefix =
@@ -103,6 +128,7 @@ public class LocalizerCorrector : ILocalizerCorrector
 
     private static LocalizerCorrectionResult Skipped(
         Localizer localizer,
+        LocalizerCorrectionFailureReason failureReason,
         string reason,
         double? displacement = null)
     {
@@ -110,6 +136,7 @@ public class LocalizerCorrector : ILocalizerCorrector
         {
             Localizer = localizer,
             IsCorrected = false,
+            FailureReason = failureReason,
             SkipReason = reason,
             LateralDisplacementMeters = displacement
         };
