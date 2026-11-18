@@ -1,5 +1,4 @@
 ﻿using XPlaneLocalizerFixer.Models;
-using XPlaneLocalizerFixer.Repositories;
 using XPlaneLocalizerFixer.Repositories.Interfaces;
 using XPlaneLocalizerFixer.Services.Interfaces;
 
@@ -28,7 +27,7 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
         _corrector = corrector;
     }
 
-    public IReadOnlyList<(LocalizerCorrectionResult Correction, LocalizerNavAidMatch NavAids)> Process(
+    public LocalizerProcessingResult Process(
         string aptDatPath,
         string earthNavDatPath,
         IReadOnlySet<string> excludedAirportIdentifiers
@@ -36,6 +35,7 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(aptDatPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(earthNavDatPath);
+        ArgumentNullException.ThrowIfNull(excludedAirportIdentifiers);
 
         var airports = _airportRepository.GetAirports(aptDatPath);
         var navData = _navDataRepository.GetNavData(earthNavDatPath);
@@ -44,6 +44,8 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
             LocalizerCorrectionResult Correction,
             LocalizerNavAidMatch NavAids
             )>();
+
+        var rejections = new List<LocalizerCorrectionResult>();
 
         foreach (var loc in navData.Localizers)
         {
@@ -78,11 +80,18 @@ public sealed class LocalizerCorrectionProcessor : ILocalizerCorrectionProcessor
             var result = _corrector.Correct(runwayMatch);
 
             if (!result.IsCorrected)
+            {
+                rejections.Add(result);
                 continue;
+            }
 
             corrections.Add((result, navAidMatch));
         }
 
-        return corrections;
+        return new LocalizerProcessingResult
+        {
+            Corrections = corrections,
+            Rejections = rejections
+        };
     }
 }
